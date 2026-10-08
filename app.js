@@ -136,21 +136,54 @@ const lessonData = {
   }
 };
 
+// --- PROGRESSO DAS AULAS ---
+const PROGRESS_KEY = 'spearsield_progress';
+
+function getWatchedLessons() {
+  return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '[]');
+}
+
+function markLessonWatched(lessonName) {
+  const watched = getWatchedLessons();
+  if (!watched.includes(lessonName)) {
+    watched.push(lessonName);
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(watched));
+  }
+  updateProgressUI();
+}
+
+function updateProgressUI() {
+  const watched = getWatchedLessons();
+  const total = Object.keys(lessonData).length;
+  const pct = Math.round((watched.length / total) * 100);
+
+  // Restaura as etiquetas "Assistido" dos cards
+  document.querySelectorAll('[data-lesson]').forEach(btn => {
+    const card = btn.closest('.course-card');
+    if (!card) return;
+    const badge = card.querySelector('.badge');
+    if (!badge) return;
+    if (watched.includes(btn.dataset.lesson)) {
+      badge.className = 'badge success';
+      badge.textContent = 'Assistido';
+    }
+  });
+
+  // Atualiza a barra de progresso
+  const bar = document.getElementById('progressBar');
+  const label = document.getElementById('progressLabel');
+  if (bar) bar.style.width = pct + '%';
+  if (label) label.textContent = `${watched.length} de ${total} aulas concluídas (${pct}%)`;
+}
+
 document.querySelectorAll('[data-lesson]').forEach(btn => btn.addEventListener('click', (e) => {
   const lessonName = btn.dataset.lesson;
   lessonTitle.textContent = lessonName;
   lessonModal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   
-  // Muda a etiqueta do card que foi clicado para "Assistido"
-  const card = btn.closest('.course-card');
-  if (card) {
-    const badge = card.querySelector('.badge');
-    if (badge) {
-      badge.className = 'badge success';
-      badge.textContent = 'Assistido';
-    }
-  }
+  // Registra a aula como assistida (salva no navegador e atualiza a barra)
+  markLessonWatched(lessonName);
 
   const data = lessonData[lessonName];
   
@@ -294,7 +327,8 @@ document.querySelectorAll('[data-answer]').forEach(btn => {
     const chosen = btn.dataset.answer;
     const s = scenarios[currentScenario];
     const card = document.getElementById('feedbackCard');
-   
+
+    // Opção "Não sei": não conta como acerto nem erro, ensina na hora
     if (chosen === 'unsure') {
       const eraPhishing = s.answer === 'phishing';
       card.classList.remove('hidden');
@@ -339,3 +373,6 @@ document.getElementById('nextScenario').addEventListener('click', () => {
 
 // Inicializa com o primeiro e-mail do simulador
 renderScenario(0);
+
+// Restaura o progresso salvo ao carregar a página
+updateProgressUI();
