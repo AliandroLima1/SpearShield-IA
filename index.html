@@ -343,7 +343,28 @@
         <article class="stat-card"><span class="stat-icon">▥</span><div><span>Resiliência média</span><strong>76%</strong></div><small>+8% no trimestre</small></article>
       </div>
 
-      <!-- 2. A BARRA DE FILTROS DESCE PARA CÁ (Ancorada nos gráficos) -->
+      <!-- 2. A SEÇÃO GERAL (Campanhas e Risco) FICA ACIMA DOS FILTROS -->
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Campanhas recentes</h3><p>Status e taxa de identificação</p></div></div>
+          <div class="campaign-item"><div><strong>Atualização de benefícios</strong><span>RH • 80 participantes</span></div><span class="badge success">Concluída</span><strong>84%</strong></div>
+          <div class="campaign-item"><div><strong>Solicitação de documento</strong><span>Administrativo • 64 participantes</span></div><span class="badge in-progress">Ativa</span><strong>71%</strong></div>
+          <div class="campaign-item"><div><strong>Fatura e fornecedor</strong><span>Financeiro • 42 participantes</span></div><span class="badge neutral">Agendada</span><strong>—</strong></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Risco humano por tema</h3><p>Visão agregada, sem exposição individual</p></div></div>
+          <div class="risk-list">
+            <div><span>Urgência</span><strong class="risk-badge medium">Médio</strong></div>
+            <div><span>Domínio parecido</span><strong class="risk-badge low">Baixo</strong></div>
+            <div><span>Anexo inesperado</span><strong class="risk-badge medium">Médio</strong></div>
+            <div><span>Pedido de credencial</span><strong class="risk-badge low">Baixo</strong></div>
+            <div><span>QR Code</span><strong class="risk-badge high">Alto</strong></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 3. A BARRA DE FILTROS AGORA ESTÁ AQUI (Em cima dos gráficos de pessoas) -->
       <div class="manager-filters">
         <div class="filter-group">
           <label>Visão por Departamento</label>
@@ -367,27 +388,7 @@
         <button class="btn ghost">Aplicar Filtro</button>
       </div>
 
-      <!-- 3. OS GRÁFICOS DETALHADOS -->
-      <div class="dashboard-grid">
-        <section class="panel">
-          <div class="panel-heading"><div><h3>Campanhas recentes</h3><p>Status e taxa de identificação</p></div></div>
-          <div class="campaign-item"><div><strong>Atualização de benefícios</strong><span>RH • 80 participantes</span></div><span class="badge success">Concluída</span><strong>84%</strong></div>
-          <div class="campaign-item"><div><strong>Solicitação de documento</strong><span>Administrativo • 64 participantes</span></div><span class="badge in-progress">Ativa</span><strong>71%</strong></div>
-          <div class="campaign-item"><div><strong>Fatura e fornecedor</strong><span>Financeiro • 42 participantes</span></div><span class="badge neutral">Agendada</span><strong>—</strong></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-heading"><div><h3>Risco humano por tema</h3><p>Visão agregada, sem exposição individual</p></div></div>
-          <div class="risk-list">
-            <div><span>Urgência</span><strong class="risk-badge medium">Médio</strong></div>
-            <div><span>Domínio parecido</span><strong class="risk-badge low">Baixo</strong></div>
-            <div><span>Anexo inesperado</span><strong class="risk-badge medium">Médio</strong></div>
-            <div><span>Pedido de credencial</span><strong class="risk-badge low">Baixo</strong></div>
-            <div><span>QR Code</span><strong class="risk-badge high">Alto</strong></div>
-          </div>
-        </section>
-      </div>
-
+      <!-- 4. OS GRÁFICOS DETALHADOS (Departamento e Pessoas) -->
       <div class="dashboard-grid">
         <section class="panel">
           <div class="panel-heading"><div><h3>Dificuldade por Departamento</h3><p>Taxa de falha nas simulações de phishing (%)</p></div></div>
