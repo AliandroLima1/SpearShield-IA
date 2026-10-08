@@ -453,3 +453,12 @@ tr:hover td{background:var(--bg)}
   border-left: 4px solid #d97706;
   background: #fffbeb;
 }
+
+#realVideoPlayer {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #000;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
