@@ -328,13 +328,22 @@
       </section>
     </section>
 
-   <section class="page" id="page-gestao" data-title="Área do gestor">
+<section class="page" id="page-gestao" data-title="Área do gestor">
       <div class="page-intro">
         <div><span class="eyebrow">VISÃO ADMINISTRATIVA</span><h2>Gestão de campanhas educacionais</h2><p>Crie campanhas de treinamento somente para bases previamente autorizadas e acompanhe indicadores agregados.</p></div>
         <button class="btn primary" id="newCampaignBtn">＋ Nova campanha</button>
       </div>
       <div class="manager-banner"><span>🛡</span><p><strong>Regra de segurança:</strong> o protótipo não dispara e-mails reais nem coleta credenciais. O fluxo abaixo representa apenas a interface administrativa.</p></div>
       
+      <!-- 1. OS CARTÕES GLOBAIS VÊM PRIMEIRO -->
+      <div class="stats-grid">
+        <article class="stat-card"><span class="stat-icon">◉</span><div><span>Campanhas ativas</span><strong>3</strong></div><small>Em ambiente controlado</small></article>
+        <article class="stat-card"><span class="stat-icon">👥</span><div><span>Participantes</span><strong>248</strong></div><small>Base autorizada</small></article>
+        <article class="stat-card"><span class="stat-icon">✉</span><div><span>Interações</span><strong>1.204</strong></div><small>Logs educacionais</small></article>
+        <article class="stat-card"><span class="stat-icon">▥</span><div><span>Resiliência média</span><strong>76%</strong></div><small>+8% no trimestre</small></article>
+      </div>
+
+      <!-- 2. A BARRA DE FILTROS DESCE PARA CÁ (Ancorada nos gráficos) -->
       <div class="manager-filters">
         <div class="filter-group">
           <label>Visão por Departamento</label>
@@ -358,13 +367,7 @@
         <button class="btn ghost">Aplicar Filtro</button>
       </div>
 
-      <div class="stats-grid">
-        <article class="stat-card"><span class="stat-icon">◉</span><div><span>Campanhas ativas</span><strong>3</strong></div><small>Em ambiente controlado</small></article>
-        <article class="stat-card"><span class="stat-icon">👥</span><div><span>Participantes</span><strong>248</strong></div><small>Base autorizada</small></article>
-        <article class="stat-card"><span class="stat-icon">✉</span><div><span>Interações</span><strong>1.204</strong></div><small>Logs educacionais</small></article>
-        <article class="stat-card"><span class="stat-icon">▥</span><div><span>Resiliência média</span><strong>76%</strong></div><small>+8% no trimestre</small></article>
-      </div>
-
+      <!-- 3. OS GRÁFICOS DETALHADOS -->
       <div class="dashboard-grid">
         <section class="panel">
           <div class="panel-heading"><div><h3>Campanhas recentes</h3><p>Status e taxa de identificação</p></div></div>
