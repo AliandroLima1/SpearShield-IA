@@ -293,9 +293,23 @@ document.querySelectorAll('[data-answer]').forEach(btn => {
     answered = true;
     const chosen = btn.dataset.answer;
     const s = scenarios[currentScenario];
-    const correct = chosen === s.answer;
-    
     const card = document.getElementById('feedbackCard');
+   
+    if (chosen === 'unsure') {
+      const eraPhishing = s.answer === 'phishing';
+      card.classList.remove('hidden');
+      card.classList.add('neutral');
+      document.getElementById('feedbackIcon').textContent = '?';
+      document.getElementById('feedbackTitle').textContent = 'Tudo bem ter dúvida!';
+      document.getElementById('feedbackText').textContent =
+        (eraPhishing
+          ? 'Este cenário era um phishing. '
+          : 'Este cenário era uma mensagem legítima. ') + s.hint;
+      document.getElementById('nextScenario').classList.remove('hidden');
+      return;
+    }
+
+    const correct = chosen === s.answer;
     card.classList.remove('hidden');
     card.classList.add(correct ? 'correct' : 'wrong');
     document.getElementById('feedbackIcon').textContent = correct ? '✓' : '!';

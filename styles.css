@@ -443,3 +443,13 @@ tr:hover td{background:var(--bg)}
   font-weight: 600;
   letter-spacing: 0.05em;
 }
+.decision.unsure {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #d97706;
+}
+
+.feedback-card.neutral {
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+}
