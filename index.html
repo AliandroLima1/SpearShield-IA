@@ -207,60 +207,77 @@
         <div class="sim-status"><span class="pulse"></span> Cenário ativo <strong id="simCounter">1 de 3</strong></div>
       </div>
 
-      <div class="sim-layout">
-        <section class="inbox" style="position: relative;">
-          
-          <!-- TELA DE CARREGAMENTO DA IA NA INBOX -->
-          <div id="aiSimLoadingOverlay" class="ai-sim-loading hidden">
-            <div class="spinner"></div>
-            <span>Gerando simulação por IA...</span>
+      <!-- NOVO CONTAINER: Separação clara entre Workspace e Simulação -->
+      <div class="sim-workspace">
+        
+        <!-- A SIMULAÇÃO (Sandbox / Janela Falsa) -->
+        <div class="simulation-window">
+          <!-- Cabeçalho de Navegador Falso -->
+          <div class="os-window-header">
+            <div class="os-dots"><span></span><span></span><span></span></div>
+            <div class="os-title">🔒 correio.empresa.com.br - Navegador Seguro</div>
           </div>
 
-          <div class="inbox-toolbar"><div class="mail-brand">Correio Corporativo</div><div class="mail-search">🔎 Pesquisar mensagens</div><div class="avatar small">LC</div></div>
-          <div class="mail-body">
-            <aside class="mail-sidebar">
-              <button class="compose-btn">＋ Nova mensagem</button>
-              <button class="mail-folder active">📥 Caixa de entrada <strong>3</strong></button>
-              <button class="mail-folder">⭐ Importantes</button>
-              <button class="mail-folder">📤 Enviados</button>
-              <button class="mail-folder">🗑 Excluídos</button>
-            </aside>
-            <div class="mail-list" aria-label="Lista de mensagens simuladas">
-              <button class="mail-item selected" data-message="0"><span class="sender">Benefícios Corporativos</span><span class="subject">Ação necessária: atualização cadastral</span><span class="preview">Para manter seus benefícios ativos, valide...</span><span class="time">10:42</span></button>
-              <button class="mail-item" data-message="1"><span class="sender">Equipe de Projetos</span><span class="subject">Ata da reunião semanal</span><span class="preview">Segue o resumo e os próximos passos...</span><span class="time">09:18</span></button>
-              <button class="mail-item" data-message="2"><span class="sender">Suporte TI</span><span class="subject">Sua senha expira hoje</span><span class="preview">Evite bloqueio. Confirme o acesso agora...</span><span class="time">08:04</span></button>
+          <section class="inbox" style="position: relative; border-radius: 0 0 12px 12px; border: none;">
+            <!-- TELA DE CARREGAMENTO DA IA NA INBOX -->
+            <div id="aiSimLoadingOverlay" class="ai-sim-loading hidden">
+              <div class="spinner"></div>
+              <span>Gerando simulação por IA...</span>
             </div>
-            <article class="email-view" id="emailView" aria-live="polite">
-              <div class="email-actions"><span>←</span><span>↗</span><span>⋮</span></div>
-              <h3 id="emailSubject">Ação necessária: atualização cadastral</h3>
-              <div class="email-from"><div class="avatar small">BC</div><div><strong id="emailSender">Benefícios Corporativos</strong><span id="emailAddress">beneficios@portal-rh-seguro.com</span></div><span id="emailTime">10:42</span></div>
-              <div class="email-content" id="emailContent">
-                <p>Olá, Lucas.</p>
-                <p>Identificamos uma atualização obrigatória no seu cadastro de benefícios. Para evitar a suspensão temporária, confirme seus dados até <strong>hoje às 17h</strong>.</p>
-                <p><a href="#" class="fake-link" onclick="return false;">Atualizar cadastro agora</a></p>
-                <p>Atenciosamente,<br>Central de Benefícios</p>
-              </div>
-              <div class="hover-link">Destino do link: <strong id="linkDestination">https://portal-beneficios-verifica.example/atualizar</strong></div>
-            </article>
-          </div>
-        </section>
 
-        <aside class="decision-panel">
-          <span class="eyebrow">SUA DECISÃO</span>
-          <h3>Como você classificaria esta mensagem?</h3>
-          <p>Observe remetente, domínio, tom, contexto e destino do link antes de responder.</p>
+            <div class="inbox-toolbar"><div class="mail-brand">Correio Corporativo</div><div class="mail-search">🔎 Pesquisar mensagens</div><div class="avatar small">LC</div></div>
+            <div class="mail-body">
+              <aside class="mail-sidebar">
+                <button class="compose-btn">＋ Nova mensagem</button>
+                <button class="mail-folder active">📥 Caixa de entrada <strong>3</strong></button>
+                <button class="mail-folder">⭐ Importantes</button>
+                <button class="mail-folder">📤 Enviados</button>
+                <button class="mail-folder">🗑 Excluídos</button>
+              </aside>
+              <div class="mail-list" aria-label="Lista de mensagens simuladas">
+                <button class="mail-item selected" data-message="0"><span class="sender">Benefícios Corporativos</span><span class="subject">Ação necessária: atualização cadastral</span><span class="preview">Para manter seus benefícios ativos, valide...</span><span class="time">10:42</span></button>
+                <button class="mail-item" data-message="1"><span class="sender">Equipe de Projetos</span><span class="subject">Ata da reunião semanal</span><span class="preview">Segue o resumo e os próximos passos...</span><span class="time">09:18</span></button>
+                <button class="mail-item" data-message="2"><span class="sender">Suporte TI</span><span class="subject">Sua senha expira hoje</span><span class="preview">Evite bloqueio. Confirme o acesso agora...</span><span class="time">08:04</span></button>
+              </div>
+              <article class="email-view" id="emailView" aria-live="polite">
+                <div class="email-actions"><span>←</span><span>↗</span><span>⋮</span></div>
+                <h3 id="emailSubject">Ação necessária: atualização cadastral</h3>
+                <div class="email-from"><div class="avatar small">BC</div><div><strong id="emailSender">Benefícios Corporativos</strong><span id="emailAddress">beneficios@portal-rh-seguro.com</span></div><span id="emailTime">10:42</span></div>
+                <div class="email-content" id="emailContent">
+                  <p>Olá, Lucas.</p>
+                  <p>Identificamos uma atualização obrigatória no seu cadastro de benefícios. Para evitar a suspensão temporária, confirme seus dados até <strong>hoje às 17h</strong>.</p>
+                  <p><a href="#" class="fake-link" onclick="return false;">Atualizar cadastro agora</a></p>
+                  <p>Atenciosamente,<br>Central de Benefícios</p>
+                </div>
+                <div class="hover-link">Destino do link: <strong id="linkDestination">https://portal-beneficios-verifica.example/atualizar</strong></div>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <!-- A PLATAFORMA (Painel do Avaliador com design distinto) -->
+        <aside class="evaluator-panel">
+          <div class="evaluator-header">
+            <span class="eyebrow" style="color: var(--primary)">ÁREA DE AVALIAÇÃO</span>
+            <h3>O que você acha desta mensagem?</h3>
+            <p>Analise o remetente, tom e destino do link na janela simulada ao lado.</p>
+          </div>
+          
           <div class="decision-buttons">
             <button class="decision safe" data-answer="legit">✓ Parece legítima</button>
             <button class="decision suspicious" data-answer="phishing">⚠ Parece phishing</button>
             <button class="decision unsure" data-answer="unsure">? Não sei</button>
           </div>
-          <div class="hint-card">
+
+          <div class="hint-card evaluator-hint">
             <div class="ai-avatar">IA</div>
             <div><strong>Assistente de análise</strong><p id="aiHint">Posso dar uma pista sem entregar a resposta.</p><button class="text-btn" id="hintBtn">Pedir uma pista</button><button class="text-btn hidden" id="togglePhishingHints">Mostrar/Esconder Dicas de Phishing</button></div>
           </div>
+
           <div class="feedback-card hidden" id="feedbackCard" aria-live="polite"><div class="feedback-icon" id="feedbackIcon">✓</div><div><strong id="feedbackTitle">Boa análise!</strong><p id="feedbackText"></p></div></div>
           <button class="btn primary full hidden" id="nextScenario">Próxima mensagem →</button>
         </aside>
+
       </div>
 
       <div class="learning-strip"><span>🔒</span><p><strong>Ambiente seguro:</strong> esta experiência é totalmente simulada e educacional. Não use senhas, dados pessoais ou credenciais reais.</p></div>
