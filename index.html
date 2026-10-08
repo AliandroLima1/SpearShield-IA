@@ -328,18 +328,43 @@
       </section>
     </section>
 
-    <section class="page" id="page-gestao" data-title="Área do gestor">
+   <section class="page" id="page-gestao" data-title="Área do gestor">
       <div class="page-intro">
         <div><span class="eyebrow">VISÃO ADMINISTRATIVA</span><h2>Gestão de campanhas educacionais</h2><p>Crie campanhas de treinamento somente para bases previamente autorizadas e acompanhe indicadores agregados.</p></div>
         <button class="btn primary" id="newCampaignBtn">＋ Nova campanha</button>
       </div>
       <div class="manager-banner"><span>🛡</span><p><strong>Regra de segurança:</strong> o protótipo não dispara e-mails reais nem coleta credenciais. O fluxo abaixo representa apenas a interface administrativa.</p></div>
+      
+      <div class="manager-filters">
+        <div class="filter-group">
+          <label>Visão por Departamento</label>
+          <select>
+            <option>Todos os departamentos</option>
+            <option>Recursos Humanos (RH)</option>
+            <option>Tecnologia (TI)</option>
+            <option>Logística</option>
+            <option>Financeiro</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Filtro Individual</label>
+          <select>
+            <option>Todos os colaboradores (Visão Geral)</option>
+            <option>Lucas Colaborador</option>
+            <option>Mariana Silva</option>
+            <option>Carlos Souza</option>
+          </select>
+        </div>
+        <button class="btn ghost">Aplicar Filtro</button>
+      </div>
+
       <div class="stats-grid">
         <article class="stat-card"><span class="stat-icon">◉</span><div><span>Campanhas ativas</span><strong>3</strong></div><small>Em ambiente controlado</small></article>
         <article class="stat-card"><span class="stat-icon">👥</span><div><span>Participantes</span><strong>248</strong></div><small>Base autorizada</small></article>
         <article class="stat-card"><span class="stat-icon">✉</span><div><span>Interações</span><strong>1.204</strong></div><small>Logs educacionais</small></article>
         <article class="stat-card"><span class="stat-icon">▥</span><div><span>Resiliência média</span><strong>76%</strong></div><small>+8% no trimestre</small></article>
       </div>
+
       <div class="dashboard-grid">
         <section class="panel">
           <div class="panel-heading"><div><h3>Campanhas recentes</h3><p>Status e taxa de identificação</p></div></div>
@@ -347,14 +372,46 @@
           <div class="campaign-item"><div><strong>Solicitação de documento</strong><span>Administrativo • 64 participantes</span></div><span class="badge in-progress">Ativa</span><strong>71%</strong></div>
           <div class="campaign-item"><div><strong>Fatura e fornecedor</strong><span>Financeiro • 42 participantes</span></div><span class="badge neutral">Agendada</span><strong>—</strong></div>
         </section>
+
         <section class="panel">
           <div class="panel-heading"><div><h3>Risco humano por tema</h3><p>Visão agregada, sem exposição individual</p></div></div>
           <div class="risk-list">
-            <div><span>Urgência</span><strong>Médio</strong></div>
-            <div><span>Domínio parecido</span><strong>Baixo</strong></div>
-            <div><span>Anexo inesperado</span><strong>Médio</strong></div>
-            <div><span>Pedido de credencial</span><strong>Baixo</strong></div>
-            <div><span>QR Code</span><strong>Alto</strong></div>
+            <div><span>Urgência</span><strong class="risk-badge medium">Médio</strong></div>
+            <div><span>Domínio parecido</span><strong class="risk-badge low">Baixo</strong></div>
+            <div><span>Anexo inesperado</span><strong class="risk-badge medium">Médio</strong></div>
+            <div><span>Pedido de credencial</span><strong class="risk-badge low">Baixo</strong></div>
+            <div><span>QR Code</span><strong class="risk-badge high">Alto</strong></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Dificuldade por Departamento</h3><p>Taxa de falha nas simulações de phishing (%)</p></div></div>
+          <div class="bar-chart">
+            <div class="bar-row low"><span>Logística</span><div><i style="width:42%; background: var(--red);"></i></div><strong style="color:var(--red)">42%</strong></div>
+            <div class="bar-row low"><span>Financeiro</span><div><i style="width:28%; background: var(--amber);"></i></div><strong style="color:var(--amber)">28%</strong></div>
+            <div class="bar-row"><span>Recursos Humanos</span><div><i style="width:15%"></i></div><strong>15%</strong></div>
+            <div class="bar-row"><span>Tecnologia (TI)</span><div><i style="width:4%"></i></div><strong>4%</strong></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><h3>🔴 Colaboradores em Risco</h3><p>Requerem suporte ou intervenção de treinamento</p></div></div>
+          <div class="campaign-item" style="grid-template-columns: auto 1fr auto;">
+            <div class="avatar small" style="background:var(--red)">MS</div>
+            <div><strong>Mariana Silva</strong><span>Logística • Caiu em 4 testes recentes</span></div>
+            <button class="text-btn" style="color:var(--red)">Notificar</button>
+          </div>
+          <div class="campaign-item" style="grid-template-columns: auto 1fr auto;">
+            <div class="avatar small" style="background:var(--amber); color:var(--ink)">CS</div>
+            <div><strong>Carlos Souza</strong><span>Financeiro • Caiu em 2 testes recentes</span></div>
+            <button class="text-btn">Ver perfil</button>
+          </div>
+          <div class="campaign-item" style="grid-template-columns: auto 1fr auto;">
+            <div class="avatar small" style="background:var(--amber); color:var(--ink)">RR</div>
+            <div><strong>Ricardo Reis</strong><span>RH • Ignorou as dicas da IA</span></div>
+            <button class="text-btn">Ver perfil</button>
           </div>
         </section>
       </div>
