@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="SpearShield - Plataforma corporativa de conscientização sobre phishing com IA." />
+<title>SpearShield IA | Treinamento Corporativo</title>
+
+<!-- Fontes do Google -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Link para o seu arquivo CSS externo -->
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+<!-- TELA DE LOGIN SIMULADA -->
+<div id="loginScreen" class="login-wrapper">
+  <div class="login-card">
+    <div class="brand-mark" style="margin: 0 auto 16px;">
+      <svg viewBox="0 0 48 48" role="img">
+        <path d="M24 4 40 10v11c0 10.6-6.5 18.7-16 23-9.5-4.3-16-12.4-16-23V10L24 4Z"/>
+        <path class="brand-lock" d="M18 22h12v10H18zM20.5 22v-3.2a3.5 3.5 0 0 1 7 0V22"/>
+      </svg>
+    </div>
+    <h2>SpearShield</h2>
+    <p>Faça login para acessar seu treinamento.</p>
+    
+    <!-- Formulário de Login -->
+    <form id="loginForm" class="login-form">
+      <div class="input-group">
+        <label for="loginEmail">E-mail corporativo</label>
+        <input type="email" id="loginEmail" placeholder="ex: gestor@empresa.com" required />
+      </div>
+      <div class="input-group">
+        <label for="loginPassword">Senha</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required />
+      </div>
+      
+      <div id="loginError" class="login-error hidden">Credenciais inválidas. Tente novamente.</div>
+      
+      <button type="submit" class="btn primary full" style="margin-top: 8px;">Entrar na plataforma</button>
+    </form>
+
+    <div class="login-hints">
+      <strong>Credenciais de teste:</strong><br>
+      Colaborador: <em>colab@empresa.com</em> | Senha: <em>123</em><br>
+      Gestor: <em>gestor@empresa.com</em> | Senha: <em>123</em>
+    </div>
+  </div>
+</div>
+
+<!-- APLICAÇÃO PRINCIPAL (Inicia escondida) -->
+<div class="app-shell hidden" id="appShell">
+  <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" role="img">
+          <path d="M24 4 40 10v11c0 10.6-6.5 18.7-16 23-9.5-4.3-16-12.4-16-23V10L24 4Z"/>
+          <path class="brand-lock" d="M18 22h12v10H18zM20.5 22v-3.2a3.5 3.5 0 0 1 7 0V22"/>
+        </svg>
+      </div>
+      <div><strong>SpearShield</strong><span>Segurança começa por você</span></div>
+    </div>
+    <nav class="nav-list">
+      <button class="nav-item active" data-page="dashboard" aria-current="page"><span class="icon">⌂</span><span>Visão geral</span></button>
+      <button class="nav-item" data-page="treinamento"><span class="icon">▶</span><span>Vídeos e lições</span></button>
+      <button class="nav-item" data-page="simulador"><span class="icon">✉</span><span>Simulador de phishing</span></button>
+      <button class="nav-item" data-page="relatorios"><span class="icon">▥</span><span>Meu desempenho</span></button>
+      <button class="nav-item manager-only hidden" data-page="gestao"><span class="icon">⚙</span><span>Área do gestor</span></button>
+    </nav>
+    <div class="security-note">
+      <div class="security-dot"></div>
+      <div><strong>Ambiente de treinamento</strong><span>Nenhuma credencial real é coletada.</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="avatar" id="userAvatarDisplay">LC</div>
+      <div><strong id="userNameDisplay">Lucas Colaborador</strong><span id="userRoleDisplay">Operações • Nível 2</span></div>
+      <button class="icon-btn" id="profileMenuBtn" aria-label="Abrir opções do perfil">•••</button>
+    </div>
+  </aside>
+
+  <main class="main" id="conteudo">
+    <header class="topbar">
+      <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
+      <div class="topbar-title"><span id="breadcrumb">Início</span><h1 id="pageTitle">Visão geral</h1></div>
+      <div class="topbar-actions">
+        <button class="btn ghost" id="logoutBtn" style="padding: 6px 12px; font-size: 11px;">Sair da conta</button>
+        <button class="icon-btn notification-btn" aria-label="Notificações">🔔<span class="notification-badge">2</span></button>
+      </div>
+    </header>
+
+    <section class="page active" id="page-dashboard" data-title="Visão geral">
+      <div class="hero">
+        <div>
+          <span class="eyebrow">TREINAMENTO ADAPTATIVO</span>
+          <h2>Reconheça o phishing antes que ele reconheça você.</h2>
+          <p>Aprenda com vídeos rápidos, pratique com cenários corporativos simulados e receba feedback imediato com apoio de IA.</p>
+          <div class="hero-actions">
+            <button class="btn primary" data-go="treinamento">Continuar treinamento</button>
+            <button class="btn ghost" data-go="simulador">Iniciar simulação</button>
+          </div>
+        </div>
+        <div class="risk-card" aria-label="Índice de resiliência">
+          <div class="risk-score">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="48" class="gauge-bg"></circle>
+              <circle cx="60" cy="60" r="48" class="gauge-value"></circle>
+            </svg>
+            <div class="risk-score-value"><strong>78</strong><span>/100</span></div>
+          </div>
+          <div><span class="risk-label">Índice de resiliência</span><strong>Bom nível</strong><p>+12 pontos desde a última simulação.</p></div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card"><span class="stat-icon">✓</span><div><span>Progresso da trilha</span><strong>0%</strong></div><div class="mini-progress"><span style="width:0%"></span></div></article>
+        <article class="stat-card"><span class="stat-icon">▶</span><div><span>Aulas concluídas</span><strong>0 / 3</strong></div><small>3 aulas restantes</small></article>
+        <article class="stat-card"><span class="stat-icon">✉</span><div><span>Simulações concluídas</span><strong>5</strong></div><small>82% de acerto</small></article>
+        <article class="stat-card"><span class="stat-icon">⚑</span><div><span>Pontos de atenção</span><strong>2</strong></div><small>Urgência e links encurtados</small></article>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-heading"><div><span class="eyebrow">MÓDULO 1</span><h3>Vídeos e lições</h3></div><button class="text-btn" data-go="treinamento">Ver todas →</button></div>
+          
+          <div class="lesson-row"><div class="lesson-thumb gradient-a"><span>▶</span></div><div class="lesson-copy"><span class="badge neutral">Não iniciada</span><strong>O que é Spearphishing?</strong><p>Entenda o conceito de ataques direcionados.</p></div></div>
+          <div class="lesson-row"><div class="lesson-thumb gradient-b"><span>▶</span></div><div class="lesson-copy"><span class="badge neutral">Não iniciada</span><strong>Controle Administrativo</strong><p>Saiba como processos internos protegem a empresa.</p></div></div>
+          <div class="lesson-row"><div class="lesson-thumb gradient-c"><span>▶</span></div><div class="lesson-copy"><span class="badge neutral">Não iniciada</span><strong>Conhecendo a SpearShield IA</strong><p>Visão geral dos recursos e simuladores.</p></div></div>
+        </section>
+
+        <section class="panel sim-preview">
+          <div class="panel-heading"><div><span class="eyebrow">MÓDULO 2</span><h3>Simulação recomendada</h3></div><span class="difficulty" style="font-size:11.5px;color:var(--muted)">Intermediário</span></div>
+          <div class="simulation-illustration">
+            <div class="fake-window"><div class="fake-window-top"><span></span><span></span><span></span></div><div class="fake-email-line long"></div><div class="fake-email-line medium"></div><div class="fake-email-box"></div><div class="fake-email-button"></div></div>
+            <div class="ai-chip">IA</div>
+          </div>
+          <h4>Atualização urgente de benefícios</h4>
+          <p>Você receberá uma mensagem simulando uma comunicação de RH. Avalie os sinais antes de decidir.</p>
+          <button class="btn primary full" data-go="simulador">Começar cenário</button>
+        </section>
+      </div>
+
+      <section class="panel compact-tip">
+        <div class="tip-icon">💡</div>
+        <div><strong>Dica de segurança do dia</strong><p>Antes de clicar, passe o cursor sobre o link e confira se o domínio pertence realmente à organização.</p></div>
+        <button class="text-btn">Ver biblioteca de dicas</button>
+      </section>
+    </section>
+
+    <!-- PÁGINA DE TREINAMENTO (Com 3 cards alinhados) -->
+    <section class="page" id="page-treinamento" data-title="Vídeos e lições">
+      <div class="page-intro">
+        <div><span class="eyebrow">MÓDULO 1</span><h2>Aprenda a identificar phishing com contexto corporativo</h2><p>Conteúdo curto e objetivo, com foco em situações reais de trabalho e no uso de IA Generativa por atacantes.</p></div>
+        <div class="module-progress" style="min-width:220px"><span style="font-size:12px;color:var(--muted)">Seu progresso</span><strong style="display:block">0 de 3 aulas</strong><div class="mini-progress"><span style="width:0%"></span></div></div>
+      </div>
+
+      <div class="section-title"><div><h3>Trilha “Phishing + IA”</h3><p>3 aulas • Módulo Essencial</p></div><select aria-label="Filtrar aulas"><option>Todas as aulas</option><option>Concluídas</option><option>Em andamento</option><option>Não iniciadas</option></select></div>
+
+      <div class="course-grid">
+        <article class="course-card">
+          <div class="course-thumb gradient-a">
+            <span>01</span>
+            <button data-lesson="O que é Spearphishing?">▶</button>
+          </div>
+          <div class="course-body">
+            <span class="badge neutral">Não iniciada</span>
+            <h4>O que é Spearphishing?</h4>
+            <p>Entenda o conceito de ataques direcionados e como os criminosos escolhem seus alvos.</p>
+            <small>Introdutório</small>
+          </div>
+        </article>
+
+        <article class="course-card">
+          <div class="course-thumb gradient-b">
+            <span>02</span>
+            <button data-lesson="Controle Administrativo">▶</button>
+          </div>
+          <div class="course-body">
+            <span class="badge neutral">Não iniciada</span>
+            <h4>Controle Administrativo</h4>
+            <p>Saiba como as políticas e os processos internos protegem a organização.</p>
+            <small>Intermediário</small>
+          </div>
+        </article>
+
+        <article class="course-card">
+          <div class="course-thumb gradient-c">
+            <span>03</span>
+            <button data-lesson="Conhecendo a SpearShield IA">▶</button>
+          </div>
+          <div class="course-body">
+            <span class="badge neutral">Não iniciada</span>
+            <h4>Conhecendo a SpearShield IA</h4>
+            <p>Visão geral da plataforma, funcionamento dos recursos e cenários simulados.</p>
+            <small>Prático</small>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-simulador" data-title="Simulador de phishing">
+      <div class="simulation-header">
+        <div><span class="eyebrow">MÓDULO 2 • AMBIENTE CONTROLADO</span><h2>Simulação corporativa de phishing</h2><p>Analise a mensagem como se estivesse no seu e-mail de trabalho. Nenhuma informação real será solicitada.</p></div>
+        <div class="sim-status"><span class="pulse"></span> Cenário ativo <strong id="simCounter">1 de 3</strong></div>
+      </div>
+
+      <div class="sim-layout">
+        <section class="inbox" style="position: relative;">
+          
+          <!-- TELA DE CARREGAMENTO DA IA NA INBOX -->
+          <div id="aiSimLoadingOverlay" class="ai-sim-loading hidden">
+            <div class="spinner"></div>
+            <span>Gerando simulação por IA...</span>
+          </div>
+
+          <div class="inbox-toolbar"><div class="mail-brand">Correio Corporativo</div><div class="mail-search">🔎 Pesquisar mensagens</div><div class="avatar small">LC</div></div>
+          <div class="mail-body">
+            <aside class="mail-sidebar">
+              <button class="compose-btn">＋ Nova mensagem</button>
+              <button class="mail-folder active">📥 Caixa de entrada <strong>3</strong></button>
+              <button class="mail-folder">⭐ Importantes</button>
+              <button class="mail-folder">📤 Enviados</button>
+              <button class="mail-folder">🗑 Excluídos</button>
+            </aside>
+            <div class="mail-list" aria-label="Lista de mensagens simuladas">
+              <button class="mail-item selected" data-message="0"><span class="sender">Benefícios Corporativos</span><span class="subject">Ação necessária: atualização cadastral</span><span class="preview">Para manter seus benefícios ativos, valide...</span><span class="time">10:42</span></button>
+              <button class="mail-item" data-message="1"><span class="sender">Equipe de Projetos</span><span class="subject">Ata da reunião semanal</span><span class="preview">Segue o resumo e os próximos passos...</span><span class="time">09:18</span></button>
+              <button class="mail-item" data-message="2"><span class="sender">Suporte TI</span><span class="subject">Sua senha expira hoje</span><span class="preview">Evite bloqueio. Confirme o acesso agora...</span><span class="time">08:04</span></button>
+            </div>
+            <article class="email-view" id="emailView" aria-live="polite">
+              <div class="email-actions"><span>←</span><span>↗</span><span>⋮</span></div>
+              <h3 id="emailSubject">Ação necessária: atualização cadastral</h3>
+              <div class="email-from"><div class="avatar small">BC</div><div><strong id="emailSender">Benefícios Corporativos</strong><span id="emailAddress">beneficios@portal-rh-seguro.com</span></div><span id="emailTime">10:42</span></div>
+              <div class="email-content" id="emailContent">
+                <p>Olá, Lucas.</p>
+                <p>Identificamos uma atualização obrigatória no seu cadastro de benefícios. Para evitar a suspensão temporária, confirme seus dados até <strong>hoje às 17h</strong>.</p>
+                <p><a href="#" class="fake-link" onclick="return false;">Atualizar cadastro agora</a></p>
+                <p>Atenciosamente,<br>Central de Benefícios</p>
+              </div>
+              <div class="hover-link">Destino do link: <strong id="linkDestination">https://portal-beneficios-verifica.example/atualizar</strong></div>
+            </article>
+          </div>
+        </section>
+
+        <aside class="decision-panel">
+          <span class="eyebrow">SUA DECISÃO</span>
+          <h3>Como você classificaria esta mensagem?</h3>
+          <p>Observe remetente, domínio, tom, contexto e destino do link antes de responder.</p>
+          <div class="decision-buttons">
+            <button class="decision safe" data-answer="legit">✓ Parece legítima</button>
+            <button class="decision suspicious" data-answer="phishing">⚠ Parece phishing</button>
+          </div>
+          <div class="hint-card">
+            <div class="ai-avatar">IA</div>
+            <div><strong>Assistente de análise</strong><p id="aiHint">Posso dar uma pista sem entregar a resposta.</p><button class="text-btn" id="hintBtn">Pedir uma pista</button><button class="text-btn hidden" id="togglePhishingHints">Mostrar/Esconder Dicas de Phishing</button></div>
+          </div>
+          <div class="feedback-card hidden" id="feedbackCard" aria-live="polite"><div class="feedback-icon" id="feedbackIcon">✓</div><div><strong id="feedbackTitle">Boa análise!</strong><p id="feedbackText"></p></div></div>
+          <button class="btn primary full hidden" id="nextScenario">Próxima mensagem →</button>
+        </aside>
+      </div>
+
+      <div class="learning-strip"><span>🔒</span><p><strong>Ambiente seguro:</strong> esta experiência é totalmente simulada e educacional. Não use senhas, dados pessoais ou credenciais reais.</p></div>
+    </section>
+
+    <section class="page" id="page-relatorios" data-title="Meu desempenho">
+      <div class="page-intro">
+        <div><span class="eyebrow">EVOLUÇÃO INDIVIDUAL</span><h2>Seu desempenho em segurança</h2><p>Acompanhe sua evolução e identifique comportamentos que merecem reforço.</p></div>
+        <button class="btn ghost">Exportar resumo</button>
+      </div>
+      <div class="stats-grid">
+        <article class="stat-card"><span class="stat-icon">◎</span><div><span>Taxa de acerto</span><strong>82%</strong></div><small>+9% no último mês</small></article>
+        <article class="stat-card"><span class="stat-icon">⚡</span><div><span>Tempo médio</span><strong>21s</strong></div><small>Por análise de mensagem</small></article>
+        <article class="stat-card"><span class="stat-icon">↗</span><div><span>Evolução</span><strong>+18%</strong></div><small>Últimas 5 simulações</small></article>
+        <article class="stat-card"><span class="stat-icon">★</span><div><span>Nível atual</span><strong>Praticante</strong></div><small>Próximo: Guardião</small></article>
+      </div>
+      <div class="reports-grid">
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Acertos por tipo de ameaça</h3><p>Percentual nas últimas simulações</p></div></div>
+          <div class="bar-chart">
+            <div class="bar-row"><span>Domínio suspeito</span><div><i style="width:92%"></i></div><strong>92%</strong></div>
+            <div class="bar-row"><span>Urgência artificial</span><div><i style="width:74%"></i></div><strong>74%</strong></div>
+            <div class="bar-row"><span>Anexo inesperado</span><div><i style="width:86%"></i></div><strong>86%</strong></div>
+            <div class="bar-row"><span>Pedido de credencial</span><div><i style="width:96%"></i></div><strong>96%</strong></div>
+            <div class="bar-row low"><span>QR Code suspeito</span><div><i style="width:68%"></i></div><strong>68%</strong></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Recomendações da IA</h3><p>Baseadas no seu histórico de aprendizagem</p></div></div>
+          <div class="recommendation"><span>1</span><div><strong>Reforçar verificação de urgência</strong><p>Você tende a decidir mais rápido quando o e-mail menciona prazo curto.</p></div></div>
+          <div class="recommendation"><span>2</span><div><strong>Praticar cenários com QR Code</strong><p>Seu desempenho nesse tipo está abaixo da média da sua trilha.</p></div></div>
+          <div class="recommendation"><span>3</span><div><strong>Rever aula sobre canais oficiais</strong><p>Priorize confirmação por um segundo canal antes de agir.</p></div></div>
+        </section>
+      </div>
+      <section class="panel">
+        <div class="panel-heading"><div><h3>Histórico de simulações</h3><p>Resultados recentes</p></div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cenário</th><th>Nível</th><th>Resultado</th><th>Tempo</th><th>Data</th></tr></thead>
+            <tbody>
+              <tr><td>Atualização de benefícios</td><td>Intermediário</td><td><span class="badge success">Correto</span></td><td>18s</td><td>10/09/2026</td></tr>
+              <tr><td>Compartilhamento de arquivo</td><td>Básico</td><td><span class="badge success">Correto</span></td><td>15s</td><td>04/09/2026</td></tr>
+              <tr><td>Troca urgente de senha</td><td>Intermediário</td><td><span class="badge warning">Revisar</span></td><td>9s</td><td>29/08/2026</td></tr>
+              <tr><td>Solicitação financeira</td><td>Avançado</td><td><span class="badge success">Correto</span></td><td>31s</td><td>20/08/2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="page-gestao" data-title="Área do gestor">
+      <div class="page-intro">
+        <div><span class="eyebrow">VISÃO ADMINISTRATIVA</span><h2>Gestão de campanhas educacionais</h2><p>Crie campanhas de treinamento somente para bases previamente autorizadas e acompanhe indicadores agregados.</p></div>
+        <button class="btn primary" id="newCampaignBtn">＋ Nova campanha</button>
+      </div>
+      <div class="manager-banner"><span>🛡</span><p><strong>Regra de segurança:</strong> o protótipo não dispara e-mails reais nem coleta credenciais. O fluxo abaixo representa apenas a interface administrativa.</p></div>
+      <div class="stats-grid">
+        <article class="stat-card"><span class="stat-icon">◉</span><div><span>Campanhas ativas</span><strong>3</strong></div><small>Em ambiente controlado</small></article>
+        <article class="stat-card"><span class="stat-icon">👥</span><div><span>Participantes</span><strong>248</strong></div><small>Base autorizada</small></article>
+        <article class="stat-card"><span class="stat-icon">✉</span><div><span>Interações</span><strong>1.204</strong></div><small>Logs educacionais</small></article>
+        <article class="stat-card"><span class="stat-icon">▥</span><div><span>Resiliência média</span><strong>76%</strong></div><small>+8% no trimestre</small></article>
+      </div>
+      <div class="dashboard-grid">
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Campanhas recentes</h3><p>Status e taxa de identificação</p></div></div>
+          <div class="campaign-item"><div><strong>Atualização de benefícios</strong><span>RH • 80 participantes</span></div><span class="badge success">Concluída</span><strong>84%</strong></div>
+          <div class="campaign-item"><div><strong>Solicitação de documento</strong><span>Administrativo • 64 participantes</span></div><span class="badge in-progress">Ativa</span><strong>71%</strong></div>
+          <div class="campaign-item"><div><strong>Fatura e fornecedor</strong><span>Financeiro • 42 participantes</span></div><span class="badge neutral">Agendada</span><strong>—</strong></div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading"><div><h3>Risco humano por tema</h3><p>Visão agregada, sem exposição individual</p></div></div>
+          <div class="risk-list">
+            <div><span>Urgência</span><strong>Médio</strong></div>
+            <div><span>Domínio parecido</span><strong>Baixo</strong></div>
+            <div><span>Anexo inesperado</span><strong>Médio</strong></div>
+            <div><span>Pedido de credencial</span><strong>Baixo</strong></div>
+            <div><span>QR Code</span><strong>Alto</strong></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL COM VIDEO PLAYER E BUFFERING -->
+<div class="modal-backdrop hidden" id="lessonModal" role="dialog" aria-modal="true" aria-labelledby="lessonModalTitle">
+  <div class="modal">
+    <div class="modal-header"><div><span class="eyebrow">AULA EM VÍDEO</span><h3 id="lessonModalTitle">Aula</h3></div><button class="icon-btn" id="closeLesson" aria-label="Fechar">✕</button></div>
+    
+    <div class="video-container">
+      <div id="videoLoadingOverlay" class="video-loading-overlay">
+        <div class="spinner"></div>
+        <span>A carregar o vídeo...</span>
+      </div>
+      <video id="realVideoPlayer">
+        O seu navegador não suporta a etiqueta de vídeo.
+      </video>
+    </div>
+
+    <div class="modal-grid">
+      <div>
+        <h4 id="modalPointsTitle">Objetivo da plataforma</h4>
+        <ul id="modalPointsList">
+          <!-- A lista será injetada pelo JavaScript -->
+        </ul>
+      </div>
+      <div class="quiz-card hidden" id="modalQuizCard">
+        <!-- Estrutura do quiz desativada para manter a limpeza visual solicitada -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="campaignModal" role="dialog" aria-modal="true" aria-labelledby="campaignModalTitle">
+  <div class="modal narrow">
+    <div class="modal-header"><div><span class="eyebrow">PROTÓTIPO SEGURO</span><h3 id="campaignModalTitle">Nova campanha educacional</h3></div><button class="icon-btn" id="closeCampaign" aria-label="Fechar">✕</button></div>
+    <form class="campaign-form" onsubmit="return false;">
+      <label>Nome da campanha<input value="Treinamento trimestral — RH" /></label>
+      <label>Público autorizado<select><option>Base de treinamento — Colaboradores internos</option></select></label>
+      <label>Cenário<select><option>Atualização de benefícios</option><option>Compartilhamento de arquivo</option><option>Solicitação de documento</option></select></label>
+      <label>Nível<select><option>Intermediário</option><option>Básico</option><option>Avançado</option></select></label>
+      <label>Objetivo pedagógico<textarea>Treinar validação de domínio, análise de urgência e confirmação por canal oficial.</textarea></label>
+      <div class="manager-banner small"><p>Este protótipo não envia mensagens reais. A campanha é apenas uma representação visual para fins acadêmicos.</p></div>
+      <button class="btn primary full" id="saveCampaign">Salvar campanha de demonstração</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast" role="status">Campanha salva no protótipo.</div>
+
+<!-- Ligação para o seu ficheiro JavaScript externo -->
+<script src="app.js"></script>
+
+</body>
+</html>
