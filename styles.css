@@ -503,3 +503,29 @@ tr:hover td{background:var(--bg)}
   border-radius: 12px;
   margin-bottom: 16px;
 }
+/* --- NOVO: Estilos de Gestão, Filtros e Cores de Risco --- */
+.manager-filters {
+  display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+  background: var(--surface); padding: 16px 20px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.filter-group { flex: 1; min-width: 200px; }
+.filter-group label {
+  display: block; font-size: 10.5px; color: var(--muted);
+  font-weight: 600; margin-bottom: 6px; letter-spacing: 0.05em;
+  text-transform: uppercase; font-family: 'IBM Plex Mono', monospace;
+}
+.filter-group select {
+  width: 100%; border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px; font: inherit; font-size: 13px;
+  background: var(--bg); color: var(--ink); cursor: pointer;
+}
+.risk-list .risk-badge {
+  padding: 3px 8px; border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  text-align: center; min-width: 58px;
+}
+.risk-badge.low { background: var(--green-soft); color: var(--green); }
+.risk-badge.medium { background: var(--amber-soft); color: var(--amber); }
+.risk-badge.high { background: var(--red-soft); color: var(--red); }
