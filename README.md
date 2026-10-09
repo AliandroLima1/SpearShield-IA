@@ -1,18 +1,9 @@
-Trabalho de Tópicos Integradores
-Alunos: Aliandro Lima
-Paloma Santana
-Sandro Militão
-Lucas Coelho
-
-
 # 🛡️ SpearShield IA
 
-Protótipo funcional de uma plataforma corporativa de educação em cibersegurança, com foco em **spear phishing** e uso de **IA Generativa** na simulação de ataques direcionados.
 
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
-![Git](https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white)
+**Alunos:** Aliandro Lima, Paloma Santana, Sandro Militão e Lucas Coelho
+
+Protótipo funcional de uma plataforma corporativa de educação em cibersegurança, com foco em spear phishing e uso de IA Generativa na simulação de ataques direcionados.
 
 ---
 
@@ -20,56 +11,61 @@ Protótipo funcional de uma plataforma corporativa de educação em ciberseguran
 
 O SpearShield IA treina colaboradores para identificar e-mails de phishing direcionado. O usuário aprende com vídeos, pratica em um simulador de caixa de entrada com cenários realistas e recebe feedback educativo imediato. O gestor acompanha campanhas e desempenho em um painel exclusivo.
 
-> ⚠️ **Ambiente seguro:** o protótipo não envia e-mails, não coleta senhas e não executa código malicioso. Todos os cenários são simulados.
+> ⚠️ **Ambiente seguro:** O protótipo não envia e-mails, não coleta senhas e não executa código malicioso. Todos os cenários são estritamente simulados no lado do cliente.
 
 ---
 
 ## ✨ Funcionalidades
 
 ### 🔐 Login com perfis
-- Acesso de **colaborador** e **gestor**, com áreas exclusivas para cada perfil
+- Acesso de colaborador e gestor, com áreas exclusivas para cada perfil.
 
 ### 📊 Dashboard de aprendizagem
-- Visão geral do progresso e indicadores de risco
+- Visão geral do progresso e indicadores de risco corporativo.
 
 ### 🎬 Módulo de vídeos
-- Aulas em vídeo organizadas em grade, com pontos-chave de cada lição
-- **Acompanhamento de progresso com persistência**: etiqueta "Assistido" e barra de progresso que sobrevivem ao recarregamento da página
+- Aulas em vídeo organizadas em grade, com pontos-chave de cada lição.
+- Acompanhamento de progresso com persistência: etiqueta "Assistido" e barra de progresso que sobrevivem ao recarregamento da página.
 
 ### 🎣 Simulador de phishing
-- Caixa de entrada fictícia com 3 cenários (2 phishing + 1 legítimo)
-- Opções de resposta: **Phishing**, **Legítimo** e **"Não sei"** — a dúvida vira aprendizado, com explicação do sinal de alerta
-- **Dica da IA** que orienta sem entregar a resposta
-- Feedback imediato com tom educativo em todos os caminhos
+- Caixa de entrada fictícia com 3 cenários (2 phishing + 1 legítimo).
+- Opções de resposta: Phishing, Legítimo e "Não sei" — a dúvida vira aprendizado, com explicação do sinal de alerta.
+- Dica da IA que orienta o usuário sem entregar a resposta final.
+- Feedback imediato com tom educativo em todos os caminhos.
 
 ### 👔 Área do gestor
-- Criação de campanhas de simulação
-- Painéis de acompanhamento exclusivos do perfil gestor
+- Criação de campanhas de simulação.
+- Painéis de acompanhamento exclusivos do perfil gestor.
 
 ---
 
-## 🚀 Como executar
+## 🛠️ Tecnologias Utilizadas
 
-Não há dependências nem instalação:
+- **HTML5:** Estrutura semântica das telas.
+- **CSS3:** Estilização e responsividade (desktop, tablet e celular).
+- **JavaScript (Vanilla):** Navegação, login simulado, simulador de cenários e persistência de dados via `localStorage`.
+- **Git + GitHub:** Versionamento com branches, Pull Requests e merge na *develop*.
 
-1. Clone o repositório ou baixe os arquivos
-2. Dê dois cliques no `index.html` — abre direto no navegador
+---
+
+## 🚀 Como Executar
+
+O projeto foi desenhado para ser acessível e não possui dependências complexas ou necessidade de instalação de pacotes:
+
+1. Clone este repositório (`git clone https://github.com/AliandroLima1/SpearShield-IA.git`) ou baixe os arquivos em ZIP.
+2. Dê dois cliques no arquivo `index.html` — o sistema abrirá diretamente no seu navegador.
 
 **Credenciais de teste:**
+
 | Perfil | E-mail | Senha |
-|---|---|---|
-| Colaborador | `colab@empresa.com` | `123` |
-| Gestor | `gestor@empresa.com` | `123` |
+| :--- | :--- | :--- |
+| **Colaborador** | colab@empresa.com | 123 |
+| **Gestor** | gestor@empresa.com | 123 |
 
 ---
 
-## 🛠️ Tecnologias
+## 📁 Estrutura e Organização Atual do Sistema
 
-- **HTML5** — estrutura das telas
-- **CSS3** — estilização, responsividade (desktop, tablet e celular)
-- **JavaScript (vanilla)** — navegação, login simulado, simulador e persistência via `localStorage`
-- **Git + GitHub** — versionamento com branches, Pull Requests e merge na `develop`
+Atualmente, o projeto está estruturado como um **protótipo front-end autônomo (standalone)**. A organização do sistema adota uma abordagem monolítica no lado do cliente (browser), onde não há comunicação ativa com serviços de back-end.
 
----
-
-## 📁 Estrutura
+Toda a lógica de roteamento de páginas, verificação de formulários, mecânica do simulador de phishing e persistência temporária de dados (progresso dos vídeos e acesso de perfis) é tratada localmente através de **JavaScript Vanilla** e armazenada no **localStorage** do navegador do usuário.
