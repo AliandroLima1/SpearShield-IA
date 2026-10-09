@@ -1,4 +1,8 @@
 Trabalho de Tópicos Integradores
+Alunos: Aliandro Lima
+Paloma Santana
+Sandro Militão
+Lucas Coelho
 
 
 # 🛡️ SpearShield IA
