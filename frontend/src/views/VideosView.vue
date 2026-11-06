@@ -16,16 +16,28 @@ async function load() {
   } catch (e) { error.value = e.message; }
 }
 
-// Abrir a aula já a registra como assistida (igual ao protótipo original).
-async function open(v) {
-  current.value = v;
+function open(v) { current.value = v; }
+function close() { current.value = null; }
+
+// A aula só conta como assistida quando o vídeo chega a 90% (ou termina).
+let marking = false;
+async function markWatched(v) {
+  if (v.watched || marking) return;
+  marking = true;
   try {
     await api(`/videos/${v.id}/watch`, { method: 'POST' });
     await load();
-  } catch (e) { error.value = e.message; }
+  } catch (e) {
+    error.value = e.message;
+  } finally {
+    marking = false;
+  }
 }
 
-function close() { current.value = null; }
+function onTimeUpdate(e) {
+  const el = e.target;
+  if (el.duration && el.currentTime / el.duration >= 0.9) markWatched(current.value);
+}
 
 onMounted(load);
 </script>
@@ -42,7 +54,9 @@ onMounted(load);
 
   <section v-if="current" class="card" aria-label="Player da aula">
     <h2>{{ current.title }}</h2>
-    <video :key="current.id" :src="current.src" controls autoplay preload="metadata" class="player"></video>
+    <video :key="current.id" :src="current.src" controls autoplay preload="metadata" class="player"
+      @timeupdate="onTimeUpdate" @ended="markWatched(current)"></video>
+    <p class="muted" v-if="!current.watched"><small>A aula é marcada como assistida ao chegar a 90% do vídeo.</small></p>
     <h3>{{ current.pointsTitle }}</h3>
     <ul><li v-for="(k, i) in current.keyPoints" :key="i">{{ k }}</li></ul>
     <button class="btn ghost" @click="close">Fechar aula</button>

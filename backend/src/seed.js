@@ -72,7 +72,7 @@ export const scenarios = [
     body:
       'Bom dia, equipe.\n\nSegue o resumo da reunião de ontem. Não há anexos nem links externos. Os próximos passos também estão registrados no repositório interno já utilizado pelo time.\n\nObrigado,\nEquipe de Projetos',
     linkLabel: null,
-    linkUrl: 'Nenhum link externo nesta mensagem',
+    linkUrl: null,
     hint: 'Procure por pedidos incomuns, urgência, mudança de canal, anexos inesperados ou domínios divergentes.',
     successText:
       'Boa análise. O cenário não apresenta os sinais de risco usados nesta simulação. Mesmo assim, manter atenção ao contexto continua sendo importante.',

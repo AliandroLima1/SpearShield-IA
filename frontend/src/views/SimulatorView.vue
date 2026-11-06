@@ -8,6 +8,7 @@ const scenarios = ref([]);
 const selectedId = ref(null);
 const hints = ref({});
 const results = ref({});
+const busy = ref(false);
 const error = ref('');
 
 const selected = computed(() => scenarios.value.find((s) => s.id === selectedId.value));
@@ -18,14 +19,21 @@ const nextId = computed(() => {
   return scenarios.value.length > 1 ? scenarios.value[(i + 1) % scenarios.value.length].id : null;
 });
 
+async function loadCampaigns() {
+  try { campaigns.value = (await api('/campaigns')).campaigns; } catch { /* lista opcional */ }
+}
+
+// O servidor devolve, junto com cada cenário, o resultado de quem já respondeu.
+// Assim o estado sobrevive a recarregar a página e trocar de campanha.
 async function loadScenarios() {
   error.value = '';
   hints.value = {};
-  results.value = {};
   try {
     const q = campaignId.value ? `?campaign=${campaignId.value}` : '';
-    scenarios.value = (await api('/scenarios' + q)).scenarios;
-    selectedId.value = scenarios.value[0]?.id ?? null;
+    const list = (await api('/scenarios' + q)).scenarios;
+    scenarios.value = list;
+    results.value = Object.fromEntries(list.filter((s) => s.result).map((s) => [s.id, s.result]));
+    selectedId.value = (list.find((s) => !s.result) ?? list[0])?.id ?? null;
   } catch (e) { error.value = e.message; }
 }
 
@@ -36,16 +44,25 @@ async function showHint() {
 }
 
 async function answer(a) {
+  if (busy.value) return; // evita resposta duplicada por duplo clique
+  busy.value = true;
+  error.value = '';
+  const id = selectedId.value;
   try {
-    results.value[selectedId.value] = await api(`/scenarios/${selectedId.value}/answer`, {
+    results.value[id] = await api(`/scenarios/${id}/answer`, {
       method: 'POST',
       body: { answer: a, campaignId: campaignId.value }
     });
-  } catch (e) { error.value = e.message; }
+    if (campaignId.value) loadCampaigns(); // atualiza o progresso (x/y) da campanha
+  } catch (e) {
+    error.value = e.message;
+  } finally {
+    busy.value = false;
+  }
 }
 
 onMounted(async () => {
-  try { campaigns.value = (await api('/campaigns')).campaigns; } catch { /* opcional */ }
+  await loadCampaigns();
   await loadScenarios();
 });
 </script>
@@ -78,14 +95,16 @@ onMounted(async () => {
       <p class="muted">De: {{ selected.senderName }} &lt;{{ selected.senderEmail }}&gt; · {{ selected.time }}</p>
       <pre class="body">{{ selected.body }}</pre>
       <!-- Link apenas ilustrativo: nunca navega -->
-      <p v-if="selected.linkLabel"><a href="#" @click.prevent>{{ selected.linkLabel }}</a></p>
-      <p class="muted"><small>Destino do link: {{ selected.linkUrl }}</small></p>
+      <template v-if="selected.linkLabel">
+        <p><a href="#" @click.prevent>{{ selected.linkLabel }}</a></p>
+        <p class="muted"><small>Destino do link: {{ selected.linkUrl }}</small></p>
+      </template>
 
       <div v-if="!result" class="actions">
-        <button class="btn danger" @click="answer('phishing')">É phishing</button>
-        <button class="btn ok" @click="answer('legit')">É legítimo</button>
-        <button class="btn ghost" @click="answer('unknown')">Não sei</button>
-        <button class="btn ghost" @click="showHint">💡 Dica da IA</button>
+        <button class="btn danger" :disabled="busy" @click="answer('phishing')">É phishing</button>
+        <button class="btn ok" :disabled="busy" @click="answer('legit')">É legítimo</button>
+        <button class="btn ghost" :disabled="busy" @click="answer('unknown')">Não sei</button>
+        <button class="btn ghost" :disabled="busy" @click="showHint">💡 Dica da IA</button>
       </div>
       <p v-if="hints[selectedId] && !result" class="hint">💡 {{ hints[selectedId] }}</p>
 

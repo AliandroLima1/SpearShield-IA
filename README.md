@@ -21,6 +21,7 @@ Visão geral do progresso, taxa de acerto e indicadores de risco. O gestor vê o
 ### Módulo de vídeos
 - 3 aulas em vídeo organizadas em grade, com player e pontos-chave de cada lição.
 - Etiqueta "Assistido" e barra de progresso salvas no banco de dados, por usuário, e mantidas após recarregar a página.
+- A aula é marcada como assistida quando o vídeo chega a 90%.
 
 ### Simulador de phishing
 - Caixa de entrada fictícia com 3 cenários (2 phishing e 1 legítimo).
@@ -28,6 +29,7 @@ Visão geral do progresso, taxa de acerto e indicadores de risco. O gestor vê o
 - Dica da IA que orienta o usuário sem entregar a resposta final.
 - Feedback imediato com tom educativo em todos os caminhos.
 - O gabarito fica no servidor e só é revelado após a resposta.
+- Cada cenário aceita uma resposta por usuário (no treino livre e em cada campanha). O resultado fica salvo e reaparece ao recarregar a página.
 
 ### Área do gestor
 - Criação e exclusão de campanhas de simulação, escolhendo os cenários.
@@ -77,7 +79,7 @@ O arquivo `backend/data/spearshield.db` é criado e populado automaticamente na 
 | Tabela | Conteúdo |
 | --- | --- |
 | `users` | Usuários e perfil (`colaborador` ou `gestor`). Senhas com hash scrypt. |
-| `sessions` | Tokens de sessão. |
+| `sessions` | Tokens de sessão, válidos por 8 horas. |
 | `videos` / `video_progress` | Aulas e quais cada usuário já assistiu. |
 | `scenarios` | E-mails simulados, dica, feedbacks e sinais de alerta. |
 | `attempts` | Respostas dos usuários no simulador. |
@@ -125,7 +127,7 @@ Acesse `http://localhost:5173`.
 | Colaborador | colab@empresa.com | 123 |
 | Gestor | gestor@empresa.com | 123 |
 
-São credenciais de demonstração, criadas no seed. Troque-as antes de qualquer uso real.
+São credenciais de demonstração, criadas no seed apenas quando `NODE_ENV` não é `production`. Após 5 senhas erradas seguidas, o login daquele e-mail fica bloqueado por 15 minutos.
 
 ## Variáveis de ambiente (backend)
 
@@ -133,6 +135,7 @@ São credenciais de demonstração, criadas no seed. Troque-as antes de qualquer
 | --- | --- | --- |
 | `PORT` | `3001` | Porta da API |
 | `DB_PATH` | `backend/data/spearshield.db` | Caminho do arquivo SQLite |
+| `NODE_ENV` | (vazio) | Com `production`, os usuários de demonstração não são criados |
 
 ## Versionamento
 

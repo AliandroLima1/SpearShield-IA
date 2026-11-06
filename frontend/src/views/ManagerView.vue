@@ -8,12 +8,14 @@ const scenarios = ref([]);
 const error = ref('');
 const form = ref({ name: '', description: '', scenarioIds: [] });
 
+// Carrega os três painéis de forma independente: a falha de um não esconde os outros.
 async function load() {
-  try {
-    overview.value = await api('/manager/overview');
-    campaigns.value = (await api('/campaigns')).campaigns;
-    scenarios.value = (await api('/scenarios')).scenarios;
-  } catch (e) { error.value = e.message; }
+  const [o, c, s] = await Promise.allSettled([api('/manager/overview'), api('/campaigns'), api('/scenarios')]);
+  if (o.status === 'fulfilled') overview.value = o.value;
+  if (c.status === 'fulfilled') campaigns.value = c.value.campaigns;
+  if (s.status === 'fulfilled') scenarios.value = s.value.scenarios;
+  const failed = [o, c, s].find((r) => r.status === 'rejected');
+  error.value = failed ? failed.reason.message : '';
 }
 
 async function create() {

@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import { randomBytes, scryptSync } from 'node:crypto';
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,10 +17,16 @@ export function hashPassword(password, salt = randomBytes(16).toString('hex')) {
   return `${salt}:${hash}`;
 }
 
+// Comparação em tempo constante para não vazar informação por timing.
 export function verifyPassword(password, stored) {
-  const [salt] = stored.split(':');
-  return hashPassword(password, salt) === stored;
+  const [salt, hash] = stored.split(':');
+  const expected = Buffer.from(hash, 'hex');
+  const actual = scryptSync(password, salt, 32);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
+
+// Hash usado quando o e-mail não existe, para o login levar o mesmo tempo nos dois casos.
+export const DUMMY_HASH = hashPassword(randomBytes(16).toString('hex'));
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
@@ -83,9 +89,20 @@ CREATE TABLE IF NOT EXISTS campaigns (
 );
 `);
 
+// Uma resposta por usuário e cenário em cada contexto (treino livre = campanha 0).
+// Remove duplicatas de bancos antigos antes de criar o índice único.
+db.exec(`
+DELETE FROM attempts WHERE id NOT IN (
+  SELECT MIN(id) FROM attempts GROUP BY user_id, scenario_id, IFNULL(campaign_id, 0)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS attempts_one_per_context
+  ON attempts (user_id, scenario_id, IFNULL(campaign_id, 0));
+`);
+
 function seed() {
   const hasUsers = db.prepare('SELECT COUNT(*) AS n FROM users').get().n > 0;
-  if (!hasUsers) {
+  // Usuários de demonstração (senha 123) só fora de produção.
+  if (!hasUsers && process.env.NODE_ENV !== 'production') {
     const ins = db.prepare('INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)');
     ins.run('Colaborador Teste', 'colab@empresa.com', hashPassword('123'), 'colaborador');
     ins.run('Gestor Teste', 'gestor@empresa.com', hashPassword('123'), 'gestor');
