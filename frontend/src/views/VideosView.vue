@@ -1,75 +1,84 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { api } from '../api.js';
+import { ref, computed, onMounted } from 'vue';
+import { api, toast } from '../api.js';
+import LessonModal from '../components/LessonModal.vue';
 
 const videos = ref([]);
 const progress = ref(0);
-const error = ref('');
+const filter = ref('todas');
 const current = ref(null);
+const error = ref('');
+const gradients = ['gradient-a', 'gradient-b', 'gradient-c'];
+
+const done = computed(() => videos.value.filter((v) => v.watched).length);
+const shown = computed(() =>
+  filter.value === 'concluidas' ? videos.value.filter((v) => v.watched)
+  : filter.value === 'pendentes' ? videos.value.filter((v) => !v.watched)
+  : videos.value
+);
 
 async function load() {
   try {
     const d = await api('/videos');
     videos.value = d.videos;
     progress.value = d.progress;
-    if (current.value) current.value = videos.value.find((v) => v.id === current.value.id) ?? null;
+    if (current.value) current.value = d.videos.find((v) => v.id === current.value.id) ?? null;
   } catch (e) { error.value = e.message; }
 }
 
-function open(v) { current.value = v; }
-function close() { current.value = null; }
-
-// A aula só conta como assistida quando o vídeo chega a 90% (ou termina).
-let marking = false;
-async function markWatched(v) {
-  if (v.watched || marking) return;
-  marking = true;
+async function onWatched(v) {
   try {
     await api(`/videos/${v.id}/watch`, { method: 'POST' });
     await load();
-  } catch (e) {
-    error.value = e.message;
-  } finally {
-    marking = false;
-  }
-}
-
-function onTimeUpdate(e) {
-  const el = e.target;
-  if (el.duration && el.currentTime / el.duration >= 0.9) markWatched(current.value);
+    toast('Aula concluída.');
+  } catch (e) { error.value = e.message; }
 }
 
 onMounted(load);
 </script>
 
 <template>
-  <h1>Aulas em vídeo</h1>
-  <div class="card">
-    <strong>{{ videos.filter((v) => v.watched).length }} de {{ videos.length }} aulas concluídas ({{ progress }}%)</strong>
-    <div class="bar" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
-      <div :style="{ width: progress + '%' }"></div>
+  <div class="page-intro">
+    <div>
+      <span class="eyebrow">MÓDULO 1</span>
+      <h2>Aprenda a identificar phishing com contexto corporativo</h2>
+      <p>Conteúdo curto e objetivo, com foco em situações reais de trabalho e no uso de IA Generativa por atacantes.</p>
+    </div>
+    <div style="min-width:220px">
+      <span style="font-size:12px;color:var(--muted)">Seu progresso</span>
+      <strong style="display:block">{{ done }} de {{ videos.length }} aulas concluídas ({{ progress }}%)</strong>
+      <div class="mini-progress" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso da trilha">
+        <span :style="{ width: progress + '%' }"></span>
+      </div>
     </div>
   </div>
-  <p v-if="error" class="error" role="alert">{{ error }}</p>
 
-  <section v-if="current" class="card" aria-label="Player da aula">
-    <h2>{{ current.title }}</h2>
-    <video :key="current.id" :src="current.src" controls autoplay preload="metadata" class="player"
-      @timeupdate="onTimeUpdate" @ended="markWatched(current)"></video>
-    <p class="muted" v-if="!current.watched"><small>A aula é marcada como assistida ao chegar a 90% do vídeo.</small></p>
-    <h3>{{ current.pointsTitle }}</h3>
-    <ul><li v-for="(k, i) in current.keyPoints" :key="i">{{ k }}</li></ul>
-    <button class="btn ghost" @click="close">Fechar aula</button>
-  </section>
+  <p v-if="error" class="error-text" role="alert">{{ error }}</p>
 
-  <div class="grid videos">
-    <article v-for="v in videos" :key="v.id" class="card video">
-      <div class="thumb" aria-hidden="true">▶</div>
-      <h2>{{ v.title }} <span v-if="v.watched" class="badge ok">Assistido</span></h2>
-      <p class="muted">{{ v.description }}</p>
-      <h3>{{ v.pointsTitle }}</h3>
-      <ul><li v-for="(k, i) in v.keyPoints" :key="i">{{ k }}</li></ul>
-      <button class="btn" @click="open(v)">Assistir aula</button>
+  <div class="section-title">
+    <div><h3>Trilha “Phishing + IA”</h3><p>{{ videos.length }} aulas • Módulo Essencial</p></div>
+    <select v-model="filter" aria-label="Filtrar aulas">
+      <option value="todas">Todas as aulas</option>
+      <option value="concluidas">Concluídas</option>
+      <option value="pendentes">Não concluídas</option>
+    </select>
+  </div>
+
+  <p v-if="!shown.length && videos.length" class="empty">Nenhuma aula neste filtro.</p>
+  <div class="course-grid">
+    <article v-for="v in shown" :key="v.id" class="course-card">
+      <div class="course-thumb" :class="gradients[(v.id - 1) % 3]">
+        <span>{{ String(v.id).padStart(2, '0') }}</span>
+        <button :aria-label="`Assistir à aula ${v.title}`" @click="current = v">▶</button>
+      </div>
+      <div class="course-body">
+        <span class="badge" :class="v.watched ? 'success' : 'neutral'">{{ v.watched ? 'Assistido' : 'Não iniciada' }}</span>
+        <h4>{{ v.title }}</h4>
+        <p>{{ v.description }}</p>
+        <small>{{ v.level }}</small>
+      </div>
     </article>
   </div>
+
+  <LessonModal v-if="current" :key="current.id" :lesson="current" @close="current = null" @watched="onWatched" />
 </template>
