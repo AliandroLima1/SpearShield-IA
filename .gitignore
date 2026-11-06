@@ -2,3 +2,5 @@ node_modules/
 .vscode/
 *.exe
 *.log
+dist/
+backend/data/
