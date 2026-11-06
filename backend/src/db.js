@@ -3,7 +3,9 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { videos, scenarios } from './seed.js';
+import {
+  videos, scenarios, testUsers, demoEmployees, demoAttempts, demoVideoProgress, demoCampaigns
+} from './seed.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dbPath = process.env.DB_PATH || resolve(here, '../data/spearshield.db');
@@ -27,6 +29,19 @@ export function verifyPassword(password, stored) {
 
 // Hash usado quando o e-mail não existe, para o login levar o mesmo tempo nos dois casos.
 export const DUMMY_HASH = hashPassword(randomBytes(16).toString('hex'));
+
+// Executa várias instruções de forma atômica.
+export function transaction(fn) {
+  db.exec('BEGIN');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
@@ -70,6 +85,14 @@ CREATE TABLE IF NOT EXISTS scenarios (
   error_text TEXT NOT NULL,
   red_flags TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS campaigns (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  scenario_ids TEXT NOT NULL,
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS attempts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -79,15 +102,31 @@ CREATE TABLE IF NOT EXISTS attempts (
   campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE TABLE IF NOT EXISTS campaigns (
+CREATE TABLE IF NOT EXISTS notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  scenario_ids TEXT NOT NULL,
-  created_by INTEGER NOT NULL REFERENCES users(id),
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message TEXT NOT NULL,
+  read INTEGER NOT NULL DEFAULT 0,
+  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 `);
+
+// ---------- Migrações: colunas novas em bancos já existentes ----------
+function addColumn(table, column, definition) {
+  const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+  if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+addColumn('users', 'department', 'TEXT');
+addColumn('users', 'title', 'TEXT');
+addColumn('videos', 'level', "TEXT NOT NULL DEFAULT ''");
+addColumn('scenarios', 'level', "TEXT NOT NULL DEFAULT 'Básico'");
+addColumn('scenarios', 'themes', "TEXT NOT NULL DEFAULT '[]'");
+addColumn('scenarios', 'preview', "TEXT NOT NULL DEFAULT ''");
+addColumn('attempts', 'time_ms', 'INTEGER');
+addColumn('attempts', 'hint_used', 'INTEGER NOT NULL DEFAULT 0');
+addColumn('campaigns', 'department', 'TEXT');
+addColumn('campaigns', 'level', "TEXT NOT NULL DEFAULT 'Intermediário'");
 
 // Uma resposta por usuário e cenário em cada contexto (treino livre = campanha 0).
 // Remove duplicatas de bancos antigos antes de criar o índice único.
@@ -97,35 +136,78 @@ DELETE FROM attempts WHERE id NOT IN (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS attempts_one_per_context
   ON attempts (user_id, scenario_id, IFNULL(campaign_id, 0));
+CREATE INDEX IF NOT EXISTS notifications_user ON notifications (user_id, read);
 `);
 
-function seed() {
-  const hasUsers = db.prepare('SELECT COUNT(*) AS n FROM users').get().n > 0;
-  // Usuários de demonstração (senha 123) só fora de produção.
-  if (!hasUsers && process.env.NODE_ENV !== 'production') {
-    const ins = db.prepare('INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)');
-    ins.run('Colaborador Teste', 'colab@empresa.com', hashPassword('123'), 'colaborador');
-    ins.run('Gestor Teste', 'gestor@empresa.com', hashPassword('123'), 'gestor');
-  }
-  // Upsert: mantém o conteúdo sincronizado com o seed sem apagar progresso/tentativas.
+// ---------- Conteúdo (sempre sincronizado com o seed) ----------
+function seedContent() {
   const insV = db.prepare(
-    `INSERT INTO videos (id,title,description,file,points_title,key_points) VALUES (?,?,?,?,?,?)
-     ON CONFLICT(id) DO UPDATE SET title=excluded.title, description=excluded.description,
+    `INSERT INTO videos (id,title,description,level,file,points_title,key_points) VALUES (?,?,?,?,?,?,?)
+     ON CONFLICT(id) DO UPDATE SET title=excluded.title, description=excluded.description, level=excluded.level,
        file=excluded.file, points_title=excluded.points_title, key_points=excluded.key_points`
   );
   for (const v of videos)
-    insV.run(v.id, v.title, v.description, v.file, v.pointsTitle, JSON.stringify(v.keyPoints));
+    insV.run(v.id, v.title, v.description, v.level, v.file, v.pointsTitle, JSON.stringify(v.keyPoints));
+
   const insS = db.prepare(
     `INSERT INTO scenarios
-     (id,kind,sender_name,sender_email,subject,time,body,link_label,link_url,hint,success_text,error_text,red_flags)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-     ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, sender_name=excluded.sender_name,
-       sender_email=excluded.sender_email, subject=excluded.subject, time=excluded.time, body=excluded.body,
-       link_label=excluded.link_label, link_url=excluded.link_url, hint=excluded.hint,
-       success_text=excluded.success_text, error_text=excluded.error_text, red_flags=excluded.red_flags`
+     (id,kind,level,themes,sender_name,sender_email,subject,preview,time,body,link_label,link_url,hint,success_text,error_text,red_flags)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+     ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, level=excluded.level, themes=excluded.themes,
+       sender_name=excluded.sender_name, sender_email=excluded.sender_email, subject=excluded.subject,
+       preview=excluded.preview, time=excluded.time, body=excluded.body, link_label=excluded.link_label,
+       link_url=excluded.link_url, hint=excluded.hint, success_text=excluded.success_text,
+       error_text=excluded.error_text, red_flags=excluded.red_flags`
   );
   for (const s of scenarios)
-    insS.run(s.id, s.kind, s.senderName, s.senderEmail, s.subject, s.time, s.body, s.linkLabel ?? null,
-      s.linkUrl ?? null, s.hint, s.successText, s.errorText, JSON.stringify(s.redFlags));
+    insS.run(s.id, s.kind, s.level, JSON.stringify(s.themes), s.senderName, s.senderEmail, s.subject, s.preview,
+      s.time, s.body, s.linkLabel ?? null, s.linkUrl ?? null, s.hint, s.successText, s.errorText,
+      JSON.stringify(s.redFlags));
 }
-seed();
+
+// ---------- Dados de demonstração (somente fora de produção) ----------
+function seedDemo() {
+  const upsertUser = db.prepare(
+    `INSERT INTO users (name, email, password, role, department, title) VALUES (?,?,?,?,?,?)
+     ON CONFLICT(email) DO UPDATE SET
+       department = COALESCE(users.department, excluded.department),
+       title = COALESCE(users.title, excluded.title)`
+  );
+  for (const u of testUsers) upsertUser.run(u.name, u.email, hashPassword('123'), u.role, u.department, u.title);
+
+  // Os colaboradores fictícios e o histórico deles só são criados uma vez.
+  const exists = db.prepare('SELECT 1 FROM users WHERE email = ?');
+  if (demoEmployees.some((e) => exists.get(e.email))) return;
+
+  for (const e of demoEmployees)
+    upsertUser.run(e.name, e.email, hashPassword(randomBytes(24).toString('hex')), 'colaborador', e.department, e.title);
+
+  const idOf = (email) => db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
+  const kindOf = (id) => scenarios.find((s) => s.id === id).kind;
+  const insA = db.prepare(
+    `INSERT OR IGNORE INTO attempts (user_id, scenario_id, answer, correct, campaign_id, time_ms, hint_used, created_at)
+     VALUES (?,?,?,?,?,?,?, datetime('now', ?))`
+  );
+  for (const [email, sid, answer, sec, hint, daysAgo] of demoAttempts)
+    insA.run(idOf(email), sid, answer, answer === kindOf(sid) ? 1 : 0, null, sec * 1000, hint, `-${daysAgo} days`);
+
+  const insP = db.prepare('INSERT OR IGNORE INTO video_progress (user_id, video_id) VALUES (?, ?)');
+  for (const [email, ids] of demoVideoProgress) for (const vid of ids) insP.run(idOf(email), vid);
+
+  const gestorId = idOf('gestor@empresa.com');
+  const insC = db.prepare(
+    `INSERT INTO campaigns (name, description, scenario_ids, created_by, department, level, created_at)
+     VALUES (?,?,?,?,?,?, datetime('now', '-14 days'))`
+  );
+  for (const c of demoCampaigns) {
+    const cid = insC.run(c.name, c.description, JSON.stringify(c.scenarioIds), gestorId, c.department, c.level)
+      .lastInsertRowid;
+    for (const [email, sid, answer, sec] of c.attempts)
+      insA.run(idOf(email), sid, answer, answer === kindOf(sid) ? 1 : 0, cid, sec * 1000, 0, '-3 days');
+  }
+}
+
+transaction(() => {
+  seedContent();
+  if (process.env.NODE_ENV !== 'production') seedDemo();
+});

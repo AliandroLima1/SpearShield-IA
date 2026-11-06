@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { api, setSession } from '../api.js';
+import BrandMark from '../components/BrandMark.vue';
 
 const router = useRouter();
 const email = ref('');
@@ -15,33 +16,43 @@ async function submit() {
   try {
     const { token, user } = await api('/login', { method: 'POST', body: { email: email.value, password: password.value } });
     setSession(token, user);
-    router.push('/');
+    password.value = '';
+    router.push(user.role === 'gestor' ? '/gestor' : '/');
   } catch (e) {
     error.value = e.message;
   } finally {
     loading.value = false;
   }
 }
-
-function fill(e, p) { email.value = e; password.value = p; }
 </script>
 
 <template>
-  <section class="card login">
-    <h1>🛡️ SpearShield IA</h1>
-    <p class="muted">Treinamento em spear phishing com simulações seguras.</p>
-    <form @submit.prevent="submit">
-      <label for="email">E-mail</label>
-      <input id="email" v-model="email" type="email" required autocomplete="username" />
-      <label for="pw">Senha</label>
-      <input id="pw" v-model="password" type="password" required autocomplete="current-password" />
-      <p v-if="error" class="error" role="alert">{{ error }}</p>
-      <button class="btn" :disabled="loading">{{ loading ? 'Entrando...' : 'Entrar' }}</button>
-    </form>
-    <div class="demo">
-      <p class="muted">Credenciais de teste:</p>
-      <button type="button" class="btn ghost" @click="fill('colab@empresa.com', '123')">Colaborador</button>
-      <button type="button" class="btn ghost" @click="fill('gestor@empresa.com', '123')">Gestor</button>
-    </div>
-  </section>
+  <div class="login-wrapper">
+    <main class="login-card" id="conteudo">
+      <BrandMark style="margin:0 auto 16px;width:34px" />
+      <h2>SpearShield</h2>
+      <p>Faça login para acessar seu treinamento.</p>
+
+      <form class="login-form" @submit.prevent="submit">
+        <div class="input-group">
+          <label for="loginEmail">E-mail corporativo</label>
+          <input id="loginEmail" v-model="email" type="email" placeholder="ex: gestor@empresa.com" required autocomplete="username" />
+        </div>
+        <div class="input-group">
+          <label for="loginPassword">Senha</label>
+          <input id="loginPassword" v-model="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <div v-if="error" class="login-error" role="alert">{{ error }}</div>
+        <button type="submit" class="btn primary full" style="margin-top:8px" :disabled="loading">
+          {{ loading ? 'Entrando...' : 'Entrar na plataforma' }}
+        </button>
+      </form>
+
+      <div class="login-hints">
+        <strong>Credenciais de teste:</strong><br />
+        Colaborador: <em>colab@empresa.com</em> | Senha: <em>123</em><br />
+        Gestor: <em>gestor@empresa.com</em> | Senha: <em>123</em>
+      </div>
+    </main>
+  </div>
 </template>
