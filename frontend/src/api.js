@@ -34,3 +34,18 @@ export async function api(path, { method = 'GET', body } = {}) {
   if (!res.ok) throw new Error(data.error || 'Erro inesperado.');
   return data;
 }
+
+// Aviso rápido no rodapé (equivalente ao "toast" do protótipo).
+export const ui = reactive({ toast: '' });
+let toastTimer;
+export function toast(message) {
+  ui.toast = message;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (ui.toast = ''), 2600);
+}
+
+// Data do banco ("AAAA-MM-DD HH:MM:SS", UTC) para dd/mm/aaaa.
+export function formatDate(value) {
+  const d = new Date(value.replace(' ', 'T') + 'Z');
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString('pt-BR');
+}

@@ -2,11 +2,18 @@ import express from 'express';
 import { randomBytes } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { db, verifyPassword, DUMMY_HASH } from './db.js';
+import { db, verifyPassword, DUMMY_HASH, transaction } from './db.js';
+import {
+  initials, userStats, resilience, learnerLevel, recommendations, history, themeBreakdown, loadAttempts,
+  parseCampaign, canJoinCampaign, campaignManagerView, campaignEmployeeView, departments, managerOverview
+} from './stats.js';
 
 const SESSION_HOURS = 8;
 const LOGIN_MAX_FAILS = 5;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
+const LEVELS = ['Básico', 'Intermediário', 'Avançado'];
+const DEFAULT_NOTICE =
+  'Sua gestão recomenda reforçar o treinamento de phishing: conclua as aulas pendentes e pratique no simulador.';
 
 const app = express();
 // Sem CORS: o frontend acessa a API pelo proxy do Vite (mesma origem).
@@ -16,7 +23,10 @@ app.use(express.json({ limit: '50kb' }));
 app.use('/videos', express.static(resolve(dirname(fileURLToPath(import.meta.url)), '../videos')));
 
 // ---------- helpers ----------
-const publicUser = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role });
+const publicUser = (u) => ({
+  id: u.id, name: u.name, email: u.email, role: u.role,
+  department: u.department, title: u.title, initials: initials(u.name)
+});
 
 // Converte para inteiro positivo; retorna null se inválido.
 function toId(v) {
@@ -43,9 +53,11 @@ const onlyRole = (role) => (req, res, next) =>
 
 const toScenarioPublic = (s) => ({
   id: s.id,
+  level: s.level,
   senderName: s.sender_name,
   senderEmail: s.sender_email,
   subject: s.subject,
+  preview: s.preview,
   time: s.time,
   body: s.body,
   linkLabel: s.link_label,
@@ -70,36 +82,8 @@ function feedback(s, answer) {
 }
 
 function getCampaign(id) {
-  const c = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(id);
-  return c ? { ...c, ids: JSON.parse(c.scenario_ids) } : null;
-}
-
-function riskLevel(accuracy, attempts) {
-  if (attempts === 0) return 'indefinido';
-  if (accuracy >= 80) return 'baixo';
-  if (accuracy >= 50) return 'médio';
-  return 'alto';
-}
-
-function userStats(userId) {
-  const a = db.prepare(
-    `SELECT COUNT(*) AS total, COALESCE(SUM(correct),0) AS hits,
-            COALESCE(SUM(answer='unknown'),0) AS unknowns
-     FROM attempts WHERE user_id = ?`
-  ).get(userId);
-  const watched = db.prepare('SELECT COUNT(*) AS n FROM video_progress WHERE user_id = ?').get(userId).n;
-  const totalVideos = db.prepare('SELECT COUNT(*) AS n FROM videos').get().n;
-  const accuracy = a.total ? Math.round((a.hits / a.total) * 100) : 0;
-  return {
-    videosWatched: watched,
-    videosTotal: totalVideos,
-    videoProgress: totalVideos ? Math.round((watched / totalVideos) * 100) : 0,
-    attempts: a.total,
-    hits: a.hits,
-    unknowns: a.unknowns,
-    accuracy,
-    risk: riskLevel(accuracy, a.total)
-  };
+  const c = id && db.prepare('SELECT * FROM campaigns WHERE id = ?').get(id);
+  return c ? parseCampaign(c) : null;
 }
 
 // ---------- auth ----------
@@ -121,7 +105,7 @@ app.post('/api/login', (req, res) => {
   if (!ok) {
     const count = f && Date.now() < f.until ? f.count + 1 : 1;
     loginFails.set(key, { count, until: Date.now() + LOGIN_LOCK_MS });
-    return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
+    return res.status(401).json({ error: 'Credenciais inválidas. Tente novamente.' });
   }
   loginFails.delete(key);
 
@@ -138,12 +122,47 @@ app.post('/api/logout', auth, (req, res) => {
 
 app.get('/api/me', auth, (req, res) => res.json({ user: publicUser(req.user) }));
 
-// ---------- dashboard ----------
-app.get('/api/dashboard', auth, (req, res) => {
-  res.json({ user: publicUser(req.user), stats: userStats(req.user.id) });
+// ---------- visão geral do colaborador ----------
+app.get('/api/dashboard', auth, onlyRole('colaborador'), (req, res) => {
+  const uid = req.user.id;
+  const stats = userStats(uid);
+  const watched = new Set(db.prepare('SELECT video_id FROM video_progress WHERE user_id = ?').all(uid).map((r) => r.video_id));
+  const lessons = db.prepare('SELECT id, title, description FROM videos ORDER BY id').all()
+    .map((v) => ({ ...v, watched: watched.has(v.id) }));
+  const next = db.prepare(
+    `SELECT id, subject, level, sender_name FROM scenarios
+     WHERE id NOT IN (SELECT scenario_id FROM attempts WHERE user_id = ? AND campaign_id IS NULL)
+     ORDER BY id LIMIT 1`
+  ).get(uid);
+  const breakdown = themeBreakdown(loadAttempts([uid]));
+  res.json({
+    user: publicUser(req.user),
+    stats,
+    resilience: resilience(stats),
+    lessons,
+    nextScenario: next ? { id: next.id, subject: next.subject, level: next.level, sender: next.sender_name } : null,
+    attention: breakdown.filter((t) => t.accuracy !== null && t.accuracy < 100).map((t) => t.label),
+    totalScenarios: db.prepare('SELECT COUNT(*) AS n FROM scenarios').get().n
+  });
 });
 
-// ---------- videos ----------
+// ---------- meu desempenho ----------
+app.get('/api/me/performance', auth, onlyRole('colaborador'), (req, res) => {
+  const uid = req.user.id;
+  const stats = userStats(uid);
+  const attempts = loadAttempts([uid]);
+  const breakdown = themeBreakdown(attempts);
+  const totalScenarios = db.prepare('SELECT COUNT(*) AS n FROM scenarios').get().n;
+  res.json({
+    stats,
+    level: learnerLevel(stats, totalScenarios),
+    themes: breakdown,
+    recommendations: recommendations(uid, stats, breakdown),
+    history: history(attempts)
+  });
+});
+
+// ---------- vídeos ----------
 app.get('/api/videos', auth, (req, res) => {
   const watched = new Set(
     db.prepare('SELECT video_id FROM video_progress WHERE user_id = ?').all(req.user.id).map((r) => r.video_id)
@@ -152,6 +171,7 @@ app.get('/api/videos', auth, (req, res) => {
     id: v.id,
     title: v.title,
     description: v.description,
+    level: v.level,
     src: '/videos/' + encodeURIComponent(v.file),
     pointsTitle: v.points_title,
     keyPoints: JSON.parse(v.key_points),
@@ -179,13 +199,15 @@ app.delete('/api/videos/:id/watch', auth, (req, res) => {
 // ---------- simulador ----------
 // Lista os cenários do contexto (treino livre ou campanha). Para os já respondidos,
 // inclui o resultado salvo; para os demais, nada do gabarito é enviado.
+// O gestor usa o simulador em modo prévia: nada é salvo.
 app.get('/api/scenarios', auth, (req, res) => {
   let rows = db.prepare('SELECT * FROM scenarios ORDER BY id').all();
   let campaignId = null;
   if (req.query.campaign !== undefined) {
     campaignId = toId(req.query.campaign);
-    const c = campaignId && getCampaign(campaignId);
-    if (!c) return res.status(404).json({ error: 'Campanha não encontrada.' });
+    const c = getCampaign(campaignId);
+    if (!c || (req.user.role === 'colaborador' && !canJoinCampaign(req.user, c)))
+      return res.status(404).json({ error: 'Campanha não encontrada.' });
     rows = rows.filter((r) => c.ids.includes(r.id));
   }
   const answers = new Map(
@@ -194,6 +216,7 @@ app.get('/api/scenarios', auth, (req, res) => {
       .map((a) => [a.scenario_id, a.answer])
   );
   res.json({
+    preview: req.user.role === 'gestor',
     scenarios: rows.map((s) => ({
       ...toScenarioPublic(s),
       result: answers.has(s.id) ? feedback(s, answers.get(s.id)) : null
@@ -209,25 +232,31 @@ app.get('/api/scenarios/:id/hint', auth, (req, res) => {
 });
 
 // Uma resposta por cenário em cada contexto. Repetir devolve o resultado original sem contar de novo.
-app.post('/api/scenarios/:id/answer', auth, onlyRole('colaborador'), (req, res) => {
-  const { answer, campaignId } = req.body || {};
+app.post('/api/scenarios/:id/answer', auth, (req, res) => {
+  const { answer, campaignId, elapsedMs, hintUsed } = req.body || {};
   if (!['phishing', 'legit', 'unknown'].includes(answer))
     return res.status(400).json({ error: 'Resposta inválida.' });
   const id = toId(req.params.id);
   const s = id && db.prepare('SELECT * FROM scenarios WHERE id = ?').get(id);
   if (!s) return res.status(404).json({ error: 'Cenário não encontrado.' });
 
+  // Gestor: só mostra o feedback, sem registrar (não entra nas métricas).
+  if (req.user.role === 'gestor') return res.json({ ...feedback(s, answer), preview: true });
+
   let cid = null;
   if (campaignId !== undefined && campaignId !== null) {
     cid = toId(campaignId);
-    const c = cid && getCampaign(cid);
-    if (!c || !c.ids.includes(s.id))
+    const c = getCampaign(cid);
+    if (!c || !canJoinCampaign(req.user, c) || !c.ids.includes(s.id))
       return res.status(400).json({ error: 'Cenário não pertence a esta campanha.' });
   }
+  // Tempo de análise informado pelo navegador, limitado a 1 hora.
+  const time = Number.isFinite(elapsedMs) && elapsedMs >= 0 ? Math.min(Math.round(elapsedMs), 3600000) : null;
 
   const r = db.prepare(
-    'INSERT OR IGNORE INTO attempts (user_id, scenario_id, answer, correct, campaign_id) VALUES (?,?,?,?,?)'
-  ).run(req.user.id, s.id, answer, answer === s.kind ? 1 : 0, cid);
+    `INSERT OR IGNORE INTO attempts (user_id, scenario_id, answer, correct, campaign_id, time_ms, hint_used)
+     VALUES (?,?,?,?,?,?,?)`
+  ).run(req.user.id, s.id, answer, answer === s.kind ? 1 : 0, cid, time, hintUsed === true ? 1 : 0);
 
   if (r.changes === 0) {
     const prev = db.prepare(
@@ -239,44 +268,24 @@ app.post('/api/scenarios/:id/answer', auth, onlyRole('colaborador'), (req, res) 
 });
 
 // ---------- campanhas ----------
-function campaignView(c, userId) {
-  const ids = JSON.parse(c.scenario_ids);
-  const base = {
-    id: c.id,
-    name: c.name,
-    description: c.description,
-    scenarioIds: ids,
-    createdAt: c.created_at
-  };
-  if (userId == null) {
-    // Só colaboradores entram nas métricas da campanha.
-    const s = db.prepare(
-      `SELECT COUNT(*) AS total, COALESCE(SUM(a.correct),0) AS hits, COUNT(DISTINCT a.user_id) AS participants
-       FROM attempts a JOIN users u ON u.id = a.user_id
-       WHERE a.campaign_id = ? AND u.role = 'colaborador'`
-    ).get(c.id);
-    return { ...base, attempts: s.total, participants: s.participants,
-      accuracy: s.total ? Math.round((s.hits / s.total) * 100) : 0 };
-  }
-  const done = db.prepare(
-    'SELECT COUNT(DISTINCT scenario_id) AS n FROM attempts WHERE campaign_id = ? AND user_id = ?'
-  ).get(c.id, userId).n;
-  return { ...base, completed: done, total: ids.length };
-}
-
 app.get('/api/campaigns', auth, (req, res) => {
   const rows = db.prepare('SELECT * FROM campaigns ORDER BY id DESC').all();
-  res.json({
-    campaigns: rows.map((c) => campaignView(c, req.user.role === 'gestor' ? null : req.user.id))
-  });
+  const campaigns = req.user.role === 'gestor'
+    ? rows.map(campaignManagerView)
+    : rows.filter((c) => canJoinCampaign(req.user, c)).map((c) => campaignEmployeeView(c, req.user.id));
+  res.json({ campaigns });
 });
 
 app.post('/api/campaigns', auth, onlyRole('gestor'), (req, res) => {
-  const { name, description = '', scenarioIds } = req.body || {};
+  const { name, description = '', scenarioIds, department = null, level = 'Intermediário' } = req.body || {};
   if (typeof name !== 'string' || !name.trim() || name.length > 100)
     return res.status(400).json({ error: 'Informe um nome de até 100 caracteres.' });
   if (typeof description !== 'string' || description.length > 500)
-    return res.status(400).json({ error: 'Descrição muito longa (máx. 500).' });
+    return res.status(400).json({ error: 'Objetivo muito longo (máx. 500 caracteres).' });
+  if (department !== null && (typeof department !== 'string' || !departments().includes(department)))
+    return res.status(400).json({ error: 'Público inválido.' });
+  if (!LEVELS.includes(level))
+    return res.status(400).json({ error: 'Nível inválido.' });
   if (!Array.isArray(scenarioIds) || !scenarioIds.length || scenarioIds.length > 50)
     return res.status(400).json({ error: 'Selecione ao menos um cenário.' });
   const ids = [...new Set(scenarioIds.map((v) => (Number.isInteger(v) ? v : null)))];
@@ -284,40 +293,60 @@ app.post('/api/campaigns', auth, onlyRole('gestor'), (req, res) => {
   if (!ids.every((i) => i !== null && valid.has(i)))
     return res.status(400).json({ error: 'Cenário inválido.' });
   const r = db.prepare(
-    'INSERT INTO campaigns (name, description, scenario_ids, created_by) VALUES (?,?,?,?)'
-  ).run(name.trim(), description.trim(), JSON.stringify(ids), req.user.id);
+    'INSERT INTO campaigns (name, description, scenario_ids, created_by, department, level) VALUES (?,?,?,?,?,?)'
+  ).run(name.trim(), description.trim(), JSON.stringify(ids), req.user.id, department, level);
   const c = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(r.lastInsertRowid);
-  res.status(201).json({ campaign: campaignView(c, null) });
+  res.status(201).json({ campaign: campaignManagerView(c) });
 });
 
+// As respostas da campanha são apagadas junto. Se fossem mantidas com campaign_id nulo,
+// colidiriam com as respostas do treino livre no índice único.
 app.delete('/api/campaigns/:id', auth, onlyRole('gestor'), (req, res) => {
   const id = toId(req.params.id);
-  const r = id ? db.prepare('DELETE FROM campaigns WHERE id = ?').run(id) : { changes: 0 };
-  if (!r.changes) return res.status(404).json({ error: 'Campanha não encontrada.' });
+  const changes = id
+    ? transaction(() => {
+        db.prepare('DELETE FROM attempts WHERE campaign_id = ?').run(id);
+        return db.prepare('DELETE FROM campaigns WHERE id = ?').run(id).changes;
+      })
+    : 0;
+  if (!changes) return res.status(404).json({ error: 'Campanha não encontrada.' });
   res.json({ ok: true });
 });
 
 // ---------- painel do gestor ----------
 app.get('/api/manager/overview', auth, onlyRole('gestor'), (req, res) => {
-  const users = db.prepare("SELECT * FROM users WHERE role = 'colaborador' ORDER BY name").all();
-  const employees = users.map((u) => ({ id: u.id, name: u.name, email: u.email, ...userStats(u.id) }));
-  const withAttempts = employees.filter((e) => e.attempts > 0);
-  const avgAccuracy = withAttempts.length
-    ? Math.round(withAttempts.reduce((s, e) => s + e.accuracy, 0) / withAttempts.length)
-    : 0;
-  const avgVideo = employees.length
-    ? Math.round(employees.reduce((s, e) => s + e.videoProgress, 0) / employees.length)
-    : 0;
-  res.json({
-    summary: {
-      employees: employees.length,
-      avgAccuracy,
-      avgVideoProgress: avgVideo,
-      highRisk: employees.filter((e) => e.risk === 'alto').length,
-      risk: riskLevel(avgAccuracy, withAttempts.length)
-    },
-    employees
-  });
+  const { department, userId } = req.query;
+  if (department !== undefined && department !== '' && !departments().includes(department))
+    return res.status(400).json({ error: 'Departamento inválido.' });
+  const uid = userId !== undefined && userId !== '' ? toId(userId) : null;
+  if (userId !== undefined && userId !== '' && !uid)
+    return res.status(400).json({ error: 'Colaborador inválido.' });
+  res.json(managerOverview({ department: department || null, userId: uid }));
+});
+
+// ---------- notificações (dentro da plataforma; nenhum e-mail é enviado) ----------
+app.get('/api/notifications', auth, (req, res) => {
+  const list = db.prepare(
+    'SELECT id, message, read, created_at FROM notifications WHERE user_id = ? ORDER BY id DESC LIMIT 20'
+  ).all(req.user.id).map((n) => ({ id: n.id, message: n.message, read: !!n.read, createdAt: n.created_at }));
+  res.json({ notifications: list, unread: list.filter((n) => !n.read).length });
+});
+
+app.post('/api/notifications/read', auth, (req, res) => {
+  db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/notifications', auth, onlyRole('gestor'), (req, res) => {
+  const { userId, message } = req.body || {};
+  const uid = toId(userId);
+  const target = uid && db.prepare("SELECT id FROM users WHERE id = ? AND role = 'colaborador'").get(uid);
+  if (!target) return res.status(404).json({ error: 'Colaborador não encontrado.' });
+  if (message !== undefined && (typeof message !== 'string' || !message.trim() || message.length > 300))
+    return res.status(400).json({ error: 'Mensagem inválida (até 300 caracteres).' });
+  db.prepare('INSERT INTO notifications (user_id, message, created_by) VALUES (?,?,?)')
+    .run(uid, (message ?? DEFAULT_NOTICE).trim(), req.user.id);
+  res.status(201).json({ ok: true });
 });
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Rota não encontrada.' }));
