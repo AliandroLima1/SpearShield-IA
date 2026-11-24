@@ -4,3 +4,11 @@ node_modules/
 *.log
 dist/
 backend/data/
+
+.env
+.env.*
+!.env.example
+
+gen.log
+gen.err
+verificar.mjs

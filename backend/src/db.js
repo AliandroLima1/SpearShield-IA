@@ -127,6 +127,8 @@ addColumn('attempts', 'time_ms', 'INTEGER');
 addColumn('attempts', 'hint_used', 'INTEGER NOT NULL DEFAULT 0');
 addColumn('campaigns', 'department', 'TEXT');
 addColumn('campaigns', 'level', "TEXT NOT NULL DEFAULT 'Intermediário'");
+addColumn('scenarios', 'origem', "TEXT NOT NULL DEFAULT 'seed'");
+addColumn('scenarios', 'status', "TEXT NOT NULL DEFAULT 'aprovado'");
 
 // Uma resposta por usuário e cenário em cada contexto (treino livre = campanha 0).
 // Remove duplicatas de bancos antigos antes de criar o índice único.
