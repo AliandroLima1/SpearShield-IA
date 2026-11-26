@@ -49,7 +49,7 @@ Acesso de colaborador e gestor, com autenticação no servidor e áreas exclusiv
 - O gestor pode abrir os vídeos e o simulador em modo prévia: as respostas dele não são registradas.
 
 ### Dados de demonstração
-Fora de produção, o banco é criado com os colaboradores fictícios do protótipo (Mariana Silva, Carlos Souza, Ricardo Reis e Beatriz Lima), algumas respostas e duas campanhas, para os painéis do gestor não começarem vazios. Esses colaboradores recebem senha aleatória e não fazem login. O usuário de teste `colab@empresa.com` começa sem respostas. Para recomeçar do zero, apague `backend/data/spearshield.db`.
+Fora de produção, o banco é criado com 6 colaboradores e 1 gestor, todos com login e senha própria (veja a tabela em "Credenciais de teste"). Mariana Silva, Carlos Souza, Ricardo Reis e Beatriz Lima já têm algumas respostas, vídeos assistidos e participam de duas campanhas, para os painéis não começarem vazios. Lucas (`colab@empresa.com`) e Paulo Mendes começam sem respostas. Para recomeçar do zero, apague `backend/data/spearshield.db`.
 
 ## Arquitetura
 
@@ -148,8 +148,13 @@ Acesse `http://localhost:5173`.
 
 | Perfil | E-mail | Senha |
 | --- | --- | --- |
-| Colaborador | colab@empresa.com | 123 |
-| Gestor | gestor@empresa.com | 123 |
+| Colaborador | colab@empresa.com (Lucas) | Colab@2026 |
+| Colaborador | mariana.silva@empresa.com | Mariana@2026 |
+| Colaborador | carlos.souza@empresa.com | Carlos@2026 |
+| Colaborador | ricardo.reis@empresa.com | Ricardo@2026 |
+| Colaborador | beatriz.lima@empresa.com | Beatriz@2026 |
+| Colaborador | paulo.mendes@empresa.com | Paulo@2026 |
+| Gestor | gestor@empresa.com | Gestor@2026 |
 
 São credenciais de demonstração, criadas no seed apenas quando `NODE_ENV` não é `production`. Após 5 senhas erradas seguidas, o login daquele e-mail fica bloqueado por 15 minutos.
 

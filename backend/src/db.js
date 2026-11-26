@@ -175,14 +175,19 @@ function seedDemo() {
        department = COALESCE(users.department, excluded.department),
        title = COALESCE(users.title, excluded.title)`
   );
-  for (const u of testUsers) upsertUser.run(u.name, u.email, hashPassword('123'), u.role, u.department, u.title);
-
-  // Os colaboradores fictícios e o histórico deles só são criados uma vez.
+  // O histórico de demonstração só é criado uma vez (antes de os usuários existirem).
   const exists = db.prepare('SELECT 1 FROM users WHERE email = ?');
-  if (demoEmployees.some((e) => exists.get(e.email))) return;
+  const firstRun = !demoEmployees.some((e) => exists.get(e.email));
 
-  for (const e of demoEmployees)
-    upsertUser.run(e.name, e.email, hashPassword(randomBytes(24).toString('hex')), 'colaborador', e.department, e.title);
+  const getPw = db.prepare('SELECT password FROM users WHERE email = ?');
+  const setPw = db.prepare('UPDATE users SET password = ? WHERE email = ?');
+  for (const u of testUsers) {
+    upsertUser.run(u.name, u.email, hashPassword(u.password), u.role, u.department, u.title);
+    // Bancos antigos têm outra senha (123 ou aleatória): alinha com o seed.
+    if (!verifyPassword(u.password, getPw.get(u.email).password)) setPw.run(hashPassword(u.password), u.email);
+  }
+
+  if (!firstRun) return;
 
   const idOf = (email) => db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
   const kindOf = (id) => scenarios.find((s) => s.id === id).kind;
