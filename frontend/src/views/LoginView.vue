@@ -50,8 +50,8 @@ async function submit() {
 
       <div class="login-hints">
         <strong>Credenciais de teste:</strong><br />
-        Colaborador: <em>colab@empresa.com</em> | Senha: <em>123</em><br />
-        Gestor: <em>gestor@empresa.com</em> | Senha: <em>123</em>
+        Colaborador: <em>colab@empresa.com</em> | Senha: <em>Colab@2026</em><br />
+        Gestor: <em>gestor@empresa.com</em> | Senha: <em>Gestor@2026</em>
       </div>
     </main>
   </div>

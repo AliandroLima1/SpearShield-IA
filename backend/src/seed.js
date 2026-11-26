@@ -152,20 +152,22 @@ export const scenarios = [
 
 // ---------- Dados de demonstração (somente fora de produção) ----------
 
-// Logins de teste (senha 123).
+// Logins de demonstração: 6 colaboradores e 1 gestor, cada um com a própria senha.
+// Só são criados fora de produção.
 export const testUsers = [
-  { name: 'Lucas Colaborador', email: 'colab@empresa.com', role: 'colaborador', department: 'Operações', title: 'Operações • Nível 2' },
-  { name: 'Ana Gestora', email: 'gestor@empresa.com', role: 'gestor', department: 'Administração', title: 'Administração • Nível 4' }
+  { name: 'Lucas Colaborador', email: 'colab@empresa.com', password: 'Colab@2026', role: 'colaborador', department: 'Operações', title: 'Operações • Nível 2' },
+  { name: 'Mariana Silva', email: 'mariana.silva@empresa.com', password: 'Mariana@2026', role: 'colaborador', department: 'Logística', title: 'Logística • Nível 1' },
+  { name: 'Carlos Souza', email: 'carlos.souza@empresa.com', password: 'Carlos@2026', role: 'colaborador', department: 'Financeiro', title: 'Financeiro • Nível 2' },
+  { name: 'Ricardo Reis', email: 'ricardo.reis@empresa.com', password: 'Ricardo@2026', role: 'colaborador', department: 'Recursos Humanos (RH)', title: 'RH • Nível 2' },
+  { name: 'Beatriz Lima', email: 'beatriz.lima@empresa.com', password: 'Beatriz@2026', role: 'colaborador', department: 'Tecnologia (TI)', title: 'TI • Nível 3' },
+  { name: 'Paulo Mendes', email: 'paulo.mendes@empresa.com', password: 'Paulo@2026', role: 'colaborador', department: 'Comercial', title: 'Comercial • Nível 1' },
+  { name: 'Ana Gestora', email: 'gestor@empresa.com', password: 'Gestor@2026', role: 'gestor', department: 'Administração', title: 'Administração • Nível 4' }
 ];
 
-// Colaboradores fictícios que aparecem no protótipo. Recebem senha aleatória:
-// existem só para popular os painéis do gestor, não para fazer login.
-export const demoEmployees = [
-  { name: 'Mariana Silva', email: 'mariana.silva@empresa.com', department: 'Logística', title: 'Logística • Nível 1' },
-  { name: 'Carlos Souza', email: 'carlos.souza@empresa.com', department: 'Financeiro', title: 'Financeiro • Nível 2' },
-  { name: 'Ricardo Reis', email: 'ricardo.reis@empresa.com', department: 'Recursos Humanos (RH)', title: 'RH • Nível 2' },
-  { name: 'Beatriz Lima', email: 'beatriz.lima@empresa.com', department: 'Tecnologia (TI)', title: 'TI • Nível 3' }
-];
+// Colaboradores com histórico de respostas de demonstração (todos já estão em testUsers).
+export const demoEmployees = testUsers.filter((u) =>
+  ['mariana.silva', 'carlos.souza', 'ricardo.reis', 'beatriz.lima'].some((p) => u.email.startsWith(p))
+);
 
 // [e-mail, cenário, resposta, tempo em segundos, usou dica, dias atrás]
 export const demoAttempts = [
